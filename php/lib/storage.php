@@ -34,9 +34,14 @@ class ContentLog {
 
     /**
      * Append an entry. Throws \RuntimeException if hash already exists.
+     * Auto-tags with PARDES metadata before storing.
      * Returns content_hash.
      */
     public function append(array $entry): string {
+        // Auto-tag with PARDES metadata
+        require_once __DIR__ . '/pardes.php';
+        $entry = PardesDetector::autoTag($entry);
+        
         $hash = $entry['content_hash'];
 
         $check = $this->db->prepare("SELECT 1 FROM entries WHERE content_hash = ?");

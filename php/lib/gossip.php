@@ -71,12 +71,17 @@ class GossipService {
 
     /**
      * Prepare a SyncResponse for an inbound SyncRequest.
+     * Filters content based on requester's ring level:
+     * - CORE/INNER: Full replication (all layers)
+     * - MIDDLE: SEEDs + PARAGRAPHs only
+     * - OUTER: On-demand only (no auto-sync)
      * Returns JSON-serializable array.
      */
     public function prepareSyncResponse(array $request): array {
         $since      = (float)($request['since_timestamp'] ?? 0.0);
         $knownSet   = array_flip($request['known_hashes'] ?? []);
         $maxEntries = (int)($request['max_entries'] ?? 100);
+        $requesterKey = $request['requester_key'] ?? null;
 
         $candidates = $this->log->getHashesSince($since);
         $missing    = array_filter($candidates, fn($h) => !isset($knownSet[$h]));
@@ -86,6 +91,19 @@ class GossipService {
         $capped  = array_slice($missing, 0, $maxEntries);
 
         $entries = $this->log->getEntriesByHashes($capped);
+        
+        // Filter by ring level if requester is in MIDDLE ring
+        if ($requesterKey) {
+            $peer = $this->rings->getPeer($requesterKey);
+            if ($peer && $peer['ring_level'] === 'middle') {
+                require_once __DIR__ . '/pardes.php';
+                $entries = array_filter($entries, function($entry) {
+                    return PardesDetector::shouldReplicateToMiddleRing($entry);
+                });
+                $entries = array_values($entries); // Re-index
+            }
+        }
+        
         // Sort ASC by timestamp (same as Python)
         usort($entries, fn($a, $b) => $a['timestamp'] <=> $b['timestamp']);
 

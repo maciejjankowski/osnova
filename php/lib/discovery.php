@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . "/lynchpin_vocab.php";
 /**
  * Triangulated Content Discovery
  *

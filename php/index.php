@@ -68,7 +68,7 @@ $log        = new ContentLog(CONTENT_DB);
 $rings      = new RingManager(PEERS_DB);
 $gossip     = new GossipService($log, $rings, $kp['public']);
 $sigStore   = new SignalStore(SIGNALS_DB);
-$triadStore = new TriadStore(DATA_DIR . '/triads.db');
+$triadStore = $sigStore; // Triads now in same DB via SignalStore
 
 // ---------------------------------------------------------------------------
 // API routing
