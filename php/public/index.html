@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Osnova - Twitter, but for actual humans</title>
+    <meta name="description" content="Social media without manipulation. No algorithm, no ads, your data.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Landing Page -->
+    <div id="landing" class="hero">
+        <h1 class="hero__title">Twitter, but your friends actually see your posts</h1>
+        <p class="hero__subtitle">Social media without the manipulation. No algorithm. No ads. Your data, your rules.</p>
+        
+        <div class="hero__visual">
+            <div class="visual__card visual__card--crossed">
+                <div class="visual__label">Twitter/Threads</div>
+                <div class="visual__item">🤖 Algorithm shows you rage bait</div>
+                <div class="visual__item">📢 Your posts get hidden</div>
+                <div class="visual__item">💰 Ads everywhere</div>
+            </div>
+            
+            <div style="font-size: 3rem; color: #6B7280;">→</div>
+            
+            <div class="visual__card">
+                <div class="visual__label" style="color: #2563EB;">Osnova</div>
+                <div class="visual__item">⏰ Chronological feed</div>
+                <div class="visual__item">👥 Friends see your posts</div>
+                <div class="visual__item">🚫 No ads, ever</div>
+            </div>
+        </div>
+        
+        <div style="margin: 2rem 0;">
+            <button class="btn btn-primary" onclick="showApp()">Try it free</button>
+            <a href="#" class="btn btn-secondary" style="margin-left: 1rem;">Learn more</a>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature__title">No Algorithm</div>
+                <div class="feature__desc">Chronological feed. See what friends actually posted.</div>
+            </div>
+            <div class="feature">
+                <div class="feature__title">No Ads</div>
+                <div class="feature__desc">$2/year. Never track, never sell your data.</div>
+            </div>
+            <div class="feature">
+                <div class="feature__title">You Own Data</div>
+                <div class="feature__desc">Your server, your rules. Export anytime.</div>
+            </div>
+            <div class="feature">
+                <div class="feature__title">Friend Circles</div>
+                <div class="feature__desc">Share with who you want. CORE, INNER, MIDDLE, or OUTER.</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- App View -->
+    <div id="app" class="app">
+        <header class="app-header">
+            <div class="app-logo">Osnova</div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <input type="search" placeholder="Search..." class="search-input">
+                <div class="avatar">MJ</div>
+            </div>
+        </header>
+        
+        <div class="app-layout">
+            <nav class="sidebar">
+                <div class="nav-item nav-item--active">
+                    <i data-lucide="home"></i>
+                    <span>Home</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="bell"></i>
+                    <span>Notifications</span>
+                    <span class="badge">3</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="message-circle"></i>
+                    <span>Messages</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="user"></i>
+                    <span>Profile</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="users"></i>
+                    <span>Rings</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </div>
+            </nav>
+            
+            <main class="feed">
+                <div class="compose">
+                    <textarea class="compose__textarea" placeholder="What's on your mind?"></textarea>
+                    <div class="compose__actions">
+                        <div class="ring-selector">
+                            <div class="ring-badge ring-badge--core active">🔵 CORE (5)</div>
+                            <div class="ring-badge ring-badge--inner">🟢 INNER (15)</div>
+                        </div>
+                        <button class="btn btn-primary">Post</button>
+                    </div>
+                </div>
+                
+                <div class="post-card post-card--core">
+                    <div class="post-header">
+                        <div class="avatar">AJ</div>
+                        <div class="post-meta">
+                            <div class="post-author">Alice Johnson</div>
+                            <div class="post-time">2 hours ago • CORE</div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Just finished reading the new book on decentralized systems. Mind = blown. 🤯<br><br>
+                        The idea that we can build networks that can't be shut down... this is the future.
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action"><i data-lucide="heart"></i><span>12</span></div>
+                        <div class="post-action"><i data-lucide="message-circle"></i><span>3</span></div>
+                        <div class="post-action"><i data-lucide="repeat"></i><span>1</span></div>
+                    </div>
+                </div>
+                
+                <div class="post-card post-card--inner">
+                    <div class="post-header">
+                        <div class="avatar">BS</div>
+                        <div class="post-meta">
+                            <div class="post-author">Bob Smith</div>
+                            <div class="post-time">5 hours ago • INNER</div>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Fascinating thread on how peer-to-peer networks actually scale.<br><br>
+                        Turns out the "can't scale" criticism is outdated by about 10 years.
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action"><i data-lucide="heart"></i><span>23</span></div>
+                        <div class="post-action"><i data-lucide="message-circle"></i><span>8</span></div>
+                        <div class="post-action"><i data-lucide="repeat"></i><span>4</span></div>
+                    </div>
+                </div>
+            </main>
+            
+            <aside class="aside">
+                <div class="sidebar-card">
+                    <h3>Trending</h3>
+                    <div class="trending-item">
+                        <div class="trending-topic">#DecentralizedWeb</div>
+                        <div class="trending-count">142 posts</div>
+                    </div>
+                    <div class="trending-item">
+                        <div class="trending-topic">#NoAlgorithm</div>
+                        <div class="trending-count">89 posts</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
