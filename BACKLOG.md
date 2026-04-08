@@ -2,10 +2,18 @@
 > Backlog maintained by Oracle. Updated after each agent completes a deliverable.
 > Spec: ~/code/the-template/deliverables/areas/research/protocols/2026-04-05_decentralized-truth-network-architecture.md
 
-## STATUS: MVP COMPLETE + DISCOVERY
-- 195 tests passing (180 unit + 5 integration + 10 discovery API)
+## STATUS: MVP COMPLETE + DISCOVERY + NEAR-TERM FEATURES
+- 195 tests passing (Python - integration validated)
 - Multi-node sync verified (3 nodes, content propagation, comments, riddle integrity)
+- **NEW (2026-04-08):** 6 near-term features implemented in PHP
+  - PARDES auto-tagging (detects SEED/PARAGRAPH/PAGE/DOCUMENT/SYSTEM layers)
+  - Middle ring content filtering (SEEDs + PARAGRAPHs only to middle ring)
+  - Persistent signals + triads (SQLite storage, survives restarts)
+  - Context hints with Lynchpin vocabulary (Polish proverbs, biblical refs, network terms)
+  - Discovery distribution automation (auto-split keys across inner ring)
+  - Canary trap detection (tracks failed challenges, identifies outsiders)
 - Boot: `source venv/bin/activate && python -m uvicorn "osnova.app:create_app" --factory --port 8000`
+- PHP version (live): https://va.evil1.org
 - Cluster: `./scripts/launch_cluster.sh`
 - Integration tests: `pytest -m integration tests/test_integration.py -v`
 
@@ -39,12 +47,12 @@
 ## NEXT STEPS (ordered by value, no Docker)
 
 ### Near-term (extend what exists)
-- [ ] **Middle ring content filtering** - only replicate SEEDs/PARAGRAPHs to middle ring peers
-- [ ] **Persistent signals + triads** - store in SQLite instead of in-memory lists
-- [ ] **PARDES metadata auto-tagging** - tag content with PARDES layer info at creation
-- [ ] **Context hints with domain vocabulary** - wire Lynchpin noise vocabulary into challenge hints
-- [ ] **Discovery distribution automation** - auto-split and send keys to ring peers on triad creation
-- [ ] **Canary trap detection** - track which challenges get resolved incorrectly (reveals outsiders)
+- [x] **PARDES metadata auto-tagging** - tag content with PARDES layer info at creation ✅ 2026-04-08
+- [x] **Middle ring content filtering** - only replicate SEEDs/PARAGRAPHs to middle ring peers ✅ 2026-04-08
+- [x] **Persistent signals + triads** - store in SQLite instead of in-memory lists ✅ 2026-04-08
+- [x] **Context hints with domain vocabulary** - wire Lynchpin noise vocabulary into challenge hints ✅ 2026-04-08
+- [x] **Discovery distribution automation** - auto-split and send keys to ring peers on triad creation ✅ 2026-04-08
+- [x] **Canary trap detection** - track which challenges get resolved incorrectly (reveals outsiders) ✅ 2026-04-08
 
 ### Medium-term (new capabilities)
 - [ ] **IPFS transport** - content-addressable storage via libp2p
@@ -93,4 +101,4 @@
 
 ---
 
-*Last updated: 2026-04-05 by ARCHITECT - MVP + Discovery complete, 195 tests*
+*Last updated: 2026-04-08 by Oracle - Near-term features complete (PHP), 195 tests (Python)*
