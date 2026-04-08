@@ -78,10 +78,11 @@ class FATKChannel implements SteganographicChannel {
         $minute = $bytes[6] % 60;
         $depth = 15 + ($bytes[7] % 31);
         
+        $minuteFormatted = sprintf("%02d", $minute);
         return <<<TEXT
 Took the boat out to {$location} this weekend.
 Water temp was {$waterTemp}°F. Used {$lineTest}lb test line with {$bait} bait.
-Caught a {$catchWeight}lb walleye at {$hour}:{$minute:02d} AM.
+Caught a {$catchWeight}lb walleye at {$hour}:{$minuteFormatted} AM.
 Depth marker showed {$depth} feet. Released after photo.
 Great day on the water!
 TEXT;
