@@ -2,13 +2,14 @@
 > Backlog maintained by Oracle. Updated after each agent completes a deliverable.
 > Spec: ~/code/the-template/deliverables/areas/research/protocols/2026-04-05_decentralized-truth-network-architecture.md
 
-## STATUS: MVP + DISCOVERY + NEAR-TERM + MEDIUM-TERM (5/7)
+## STATUS: MVP + DISCOVERY + NEAR-TERM (6/6) + MEDIUM-TERM (6/7)
 - 195 tests passing (Python - integration validated)
 - Multi-node sync verified
 - **2026-04-08 Session 1:** 6 near-term features (PARDES, filtering, signals, vocab, discovery, canary)
-- **2026-04-08 Session 2:** 5 medium-term features (credibility, ephemeral, voting, delegation, bounty)
+- **2026-04-08 Session 2:** 6 medium-term features (credibility, ephemeral, voting, delegation, bounty, key rotation)
+- **Total: 12 features in one day** (PHP implementation)
 - PHP version (live): https://va.evil1.org
-- Boot: `source venv/bin/activate && python -m uvicorn "osnova.app:create_app" --factory --port 8000`
+- Remaining: IPFS (external dep), Long-term resilience (hardware-dependent)
 
 ---
 
@@ -53,8 +54,8 @@
 - [x] **Polls + quadratic voting** - per-ring democratic tools ✅ 2026-04-08
 - [x] **Liquid delegation** - delegative voting within trust rings ✅ 2026-04-08
 - [x] **Bounty system** - information requests with path-attributed rewards (Shapley values) ✅ 2026-04-08
-- [ ] **Key rotation** - threshold signatures (k-of-n inner ring co-sign)
-- [ ] **IPFS transport** - content-addressable storage via libp2p
+- [x] **Key rotation** - threshold signatures (k-of-n inner ring co-sign) ✅ 2026-04-08
+- [ ] **IPFS transport** - content-addressable storage via libp2p (external dep)
 
 ### Long-term (resilience layer)
 - [ ] **LoRa/Meshtastic transport** - SEED-only propagation over radio
@@ -94,4 +95,4 @@
 
 ---
 
-*Last updated: 2026-04-08 by Oracle - Near-term (6/6) + Medium-term (5/7) complete. 11 features in one day.*
+*Last updated: 2026-04-08 by Oracle - Near-term (6/6) + Medium-term (6/7) complete. 12 features in one day. IPFS deferred (external dep).*
