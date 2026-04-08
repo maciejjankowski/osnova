@@ -167,3 +167,34 @@ class TriadStore {
         $stmt->execute();
     }
 }
+
+/**
+ * Auto-distribute discovery keys to ring peers.
+ * Splits triad keys across MESSAGE/COUNTER/CHALLENGE peers automatically.
+ */
+function discovery_auto_distribute(RingManager $rings, SignalStore $store, string $target_key): array {
+    // Get inner ring peers (trusted enough for discovery)
+    $peers = $rings->getPeersByRing('inner');
+    
+    if (count($peers) < 3) {
+        throw new RuntimeException("Need at least 3 inner ring peers for triad distribution");
+    }
+    
+    // Randomly select 3 different peers
+    shuffle($peers);
+    $message_peer = $peers[0]['public_key'];
+    $counter_peer = $peers[1]['public_key'];
+    $challenge_peer = $peers[2]['public_key'];
+    
+    // Store triad
+    $triad_id = $store->storeTriad($message_peer, $counter_peer, $challenge_peer, $target_key);
+    
+    return [
+        'triad_id' => $triad_id,
+        'message_peer' => $message_peer,
+        'counter_peer' => $counter_peer,
+        'challenge_peer' => $challenge_peer,
+        'target_key' => $target_key,
+        'hint' => LynchpinVocab::generateChallengeHint('medium'),
+    ];
+}
