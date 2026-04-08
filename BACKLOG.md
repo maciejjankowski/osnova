@@ -2,20 +2,13 @@
 > Backlog maintained by Oracle. Updated after each agent completes a deliverable.
 > Spec: ~/code/the-template/deliverables/areas/research/protocols/2026-04-05_decentralized-truth-network-architecture.md
 
-## STATUS: MVP COMPLETE + DISCOVERY + NEAR-TERM FEATURES
+## STATUS: MVP + DISCOVERY + NEAR-TERM + MEDIUM-TERM (5/7)
 - 195 tests passing (Python - integration validated)
-- Multi-node sync verified (3 nodes, content propagation, comments, riddle integrity)
-- **NEW (2026-04-08):** 6 near-term features implemented in PHP
-  - PARDES auto-tagging (detects SEED/PARAGRAPH/PAGE/DOCUMENT/SYSTEM layers)
-  - Middle ring content filtering (SEEDs + PARAGRAPHs only to middle ring)
-  - Persistent signals + triads (SQLite storage, survives restarts)
-  - Context hints with Lynchpin vocabulary (Polish proverbs, biblical refs, network terms)
-  - Discovery distribution automation (auto-split keys across inner ring)
-  - Canary trap detection (tracks failed challenges, identifies outsiders)
-- Boot: `source venv/bin/activate && python -m uvicorn "osnova.app:create_app" --factory --port 8000`
+- Multi-node sync verified
+- **2026-04-08 Session 1:** 6 near-term features (PARDES, filtering, signals, vocab, discovery, canary)
+- **2026-04-08 Session 2:** 5 medium-term features (credibility, ephemeral, voting, delegation, bounty)
 - PHP version (live): https://va.evil1.org
-- Cluster: `./scripts/launch_cluster.sh`
-- Integration tests: `pytest -m integration tests/test_integration.py -v`
+- Boot: `source venv/bin/activate && python -m uvicorn "osnova.app:create_app" --factory --port 8000`
 
 ---
 
@@ -55,13 +48,13 @@
 - [x] **Canary trap detection** - track which challenges get resolved incorrectly (reveals outsiders) ✅ 2026-04-08
 
 ### Medium-term (new capabilities)
-- [ ] **IPFS transport** - content-addressable storage via libp2p
-- [ ] **Bounty system** - information requests with path-attributed rewards (Shapley values)
-- [ ] **Polls + quadratic voting** - per-ring democratic tools
-- [ ] **Liquid delegation** - delegative voting within trust rings
-- [ ] **Credibility flagging** - flag questionable content, seek more context
-- [ ] **Ephemeral content** - TTL-based auto-purge honored by ring members
+- [x] **Credibility flagging** - flag questionable content, seek more context ✅ 2026-04-08
+- [x] **Ephemeral content** - TTL-based auto-purge honored by ring members ✅ 2026-04-08
+- [x] **Polls + quadratic voting** - per-ring democratic tools ✅ 2026-04-08
+- [x] **Liquid delegation** - delegative voting within trust rings ✅ 2026-04-08
+- [x] **Bounty system** - information requests with path-attributed rewards (Shapley values) ✅ 2026-04-08
 - [ ] **Key rotation** - threshold signatures (k-of-n inner ring co-sign)
+- [ ] **IPFS transport** - content-addressable storage via libp2p
 
 ### Long-term (resilience layer)
 - [ ] **LoRa/Meshtastic transport** - SEED-only propagation over radio
@@ -101,4 +94,4 @@
 
 ---
 
-*Last updated: 2026-04-08 by Oracle - Near-term features complete (PHP), 195 tests (Python)*
+*Last updated: 2026-04-08 by Oracle - Near-term (6/6) + Medium-term (5/7) complete. 11 features in one day.*
