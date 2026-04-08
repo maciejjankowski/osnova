@@ -1,0 +1,61 @@
+{
+  "build_id": "canary_v1",
+  "started_at": "2026-04-08T19:13:00Z",
+  "agents": {
+    "crypto_agent": {
+      "task": "Implement Shamir Secret Sharing + time-lock + duress detection",
+      "priority": 1,
+      "dependencies": [],
+      "deliverables": ["php/lib/canary_crypto.php"],
+      "tests": ["tests/canary_crypto_test.php"]
+    },
+    "database_agent": {
+      "task": "Create database schema + migration scripts",
+      "priority": 2,
+      "dependencies": [],
+      "deliverables": ["php/migrations/canary_schema.sql"],
+      "tests": ["tests/canary_db_test.php"]
+    },
+    "api_agent": {
+      "task": "Build REST API endpoints for canary operations",
+      "priority": 3,
+      "dependencies": ["crypto_agent", "database_agent"],
+      "deliverables": ["php/api/canary_routes.php"],
+      "tests": ["tests/canary_api_test.php"]
+    },
+    "channels_agent": {
+      "task": "Implement steganographic channels (FATK, tire forum, memes, etc)",
+      "priority": 4,
+      "dependencies": ["crypto_agent"],
+      "deliverables": ["php/lib/stego_channels.php"],
+      "tests": ["tests/stego_channels_test.php"]
+    },
+    "testing_agent": {
+      "task": "Create comprehensive test suite",
+      "priority": 5,
+      "dependencies": ["*"],
+      "deliverables": ["tests/canary_integration_test.php"],
+      "tests": []
+    },
+    "integration_agent": {
+      "task": "Wire everything together + deployment",
+      "priority": 6,
+      "dependencies": ["*"],
+      "deliverables": ["php/lib/canary_system.php"],
+      "tests": []
+    }
+  },
+  "phases": [
+    "Phase 1: Crypto primitives (Agent 1)",
+    "Phase 2: Database schema (Agent 2)",
+    "Phase 3: API layer (Agent 3)",
+    "Phase 4: Steganographic channels (Agent 4)",
+    "Phase 5: Testing (Agent 5)",
+    "Phase 6: Integration (Agent 6)"
+  ],
+  "success_criteria": {
+    "all_tests_pass": true,
+    "code_coverage": ">80%",
+    "deployment_ready": true
+  }
+}
