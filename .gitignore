@@ -1,0 +1,33 @@
+# Secrets and keys
+*.key
+*.pem
+*.secret
+.env
+.env.*
+
+# Data directories
+data/*.db
+data/*.json
+data/identity.key
+php/data/*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
