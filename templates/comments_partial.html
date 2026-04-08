@@ -1,0 +1,45 @@
+<div id="comments-{{ post_hash[:8] }}" class="comments-section">
+  {% if comments %}
+    {% for comment in comments %}
+    <div class="comment-card">
+      <span class="author-key" title="{{ comment.author_key }}">{{ comment.author_key[:8] }}...</span>
+      <span class="post-time">{{ comment.timestamp | int | datetimeformat }}</span>
+      <p>{{ comment.body }}</p>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p class="no-comments"><small>No comments yet.</small></p>
+  {% endif %}
+
+  <form class="comment-form" onsubmit="submitComment(event, '{{ post_hash }}')">
+    <div class="grid">
+      <input type="text" name="body" placeholder="Add a comment..." required />
+      <button type="submit" class="outline small">Reply</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function submitComment(evt, postHash) {
+  evt.preventDefault();
+  const form = evt.target;
+  const body = form.querySelector('[name=body]').value;
+  const shortHash = postHash.substring(0, 8);
+
+  fetch('/api/posts/' + postHash + '/comment', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({body: body})
+  })
+  .then(r => r.json())
+  .then(() => {
+    htmx.ajax('GET', '/feed/posts/' + postHash + '/comments', {
+      target: '#comments-' + shortHash,
+      swap: 'outerHTML'
+    });
+  })
+  .catch(() => {
+    form.insertAdjacentHTML('afterend', '<small class="error">Failed to post comment.</small>');
+  });
+}
+</script>

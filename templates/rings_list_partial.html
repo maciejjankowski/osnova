@@ -1,0 +1,66 @@
+<div id="rings-list">
+{% set levels = ['core', 'inner', 'middle', 'outer'] %}
+{% set promote_map = {'outer': 'middle', 'middle': 'inner', 'inner': 'core'} %}
+{% set demote_map = {'core': 'inner', 'inner': 'middle', 'middle': 'outer'} %}
+{% set has_peers = false %}
+{% for level in levels %}
+  {% if peers_by_level.get(level) %}
+  {% set has_peers = true %}
+  <section>
+    <h4 class="ring-level-heading ring-{{ level }}">{{ level | capitalize }}</h4>
+    {% for peer in peers_by_level[level] %}
+    <article class="peer-card ring-border-{{ peer.ring_level }}">
+      <div class="peer-info">
+        <strong>{{ peer.display_name }}</strong>
+        <code class="author-key" title="{{ peer.public_key }}">{{ peer.public_key[:8] }}...</code>
+        <small class="peer-endpoint">{{ peer.endpoint }}</small>
+      </div>
+      <div class="peer-actions">
+        <button
+          class="outline small"
+          onclick="removePeer('{{ peer.public_key }}', '{{ peer.display_name }}')"
+        >Remove</button>
+        {% if peer.ring_level in promote_map %}
+        <button
+          class="outline small promote-btn"
+          onclick="changePeerRing('{{ peer.public_key }}', '{{ promote_map[peer.ring_level] }}')"
+        >Promote</button>
+        {% endif %}
+        {% if peer.ring_level in demote_map %}
+        <button
+          class="outline small demote-btn"
+          onclick="changePeerRing('{{ peer.public_key }}', '{{ demote_map[peer.ring_level] }}')"
+        >Demote</button>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+{% endfor %}
+{% if not peers_by_level %}
+  <p>No peers yet. Add one above.</p>
+{% endif %}
+</div>
+
+<script>
+function removePeer(publicKey, displayName) {
+  if (!confirm('Remove ' + displayName + '?')) return;
+  fetch('/api/rings/peers/' + publicKey, {method: 'DELETE'})
+    .then(() => htmx.ajax('GET', '/rings/list', {target: '#rings-list', swap: 'outerHTML'}))
+    .catch(() => alert('Failed to remove peer.'));
+}
+
+function changePeerRing(publicKey, newLevel) {
+  fetch('/api/rings/peers/' + publicKey + '/promote', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ring_level: newLevel})
+  })
+  .then(r => {
+    if (!r.ok) return r.json().then(d => { throw new Error(d.detail || 'Failed'); });
+    htmx.ajax('GET', '/rings/list', {target: '#rings-list', swap: 'outerHTML'});
+  })
+  .catch(e => alert('Error: ' + e.message));
+}
+</script>

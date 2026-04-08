@@ -1,0 +1,96 @@
+# OSNOVA - Decentralized Truth Network
+> Backlog maintained by Oracle. Updated after each agent completes a deliverable.
+> Spec: ~/code/the-template/deliverables/areas/research/protocols/2026-04-05_decentralized-truth-network-architecture.md
+
+## STATUS: MVP COMPLETE + DISCOVERY
+- 195 tests passing (180 unit + 5 integration + 10 discovery API)
+- Multi-node sync verified (3 nodes, content propagation, comments, riddle integrity)
+- Boot: `source venv/bin/activate && python -m uvicorn "osnova.app:create_app" --factory --port 8000`
+- Cluster: `./scripts/launch_cluster.sh`
+- Integration tests: `pytest -m integration tests/test_integration.py -v`
+
+---
+
+## DONE
+
+### Phase 1: Foundation
+- [x] Project structure + pyproject.toml + venv
+- [x] Data models (schemas.py) - all content, peer, signal, discovery schemas
+- [x] Identity module (crypto/identity.py) - Ed25519 keypair, sign, verify - 19 tests
+- [x] Storage module (storage/log.py) - SQLite append-only log - 15 tests
+- [x] Ring management (rings/manager.py) - Dunbar-capped trust rings - 21 tests
+- [x] Gossip protocol (gossip/sync.py) - pull-based HTTP sync - 16 tests
+
+### Phase 2: Core Features
+- [x] FastAPI endpoints (api/routes.py) - 20+ API endpoints - 33 tests
+- [x] Node eject protocol (eject/protocol.py) - package, eject, reattach, canary - 21 tests
+- [x] Riddle encoder integration (integrity/riddle.py) - CSP encoding + verification - 23 tests
+- [x] Triangulated discovery (discovery/triangulation.py) - message/countermessage/challenge - 32 tests
+
+### Phase 3: Integration
+- [x] Discovery API endpoints + frontend page - 10 tests
+- [x] Signature verification middleware (api/middleware.py)
+- [x] HTMX frontend - 9 templates (feed, compose, rings, identity, eject, discover)
+- [x] Multi-node integration tests - 5 tests (real processes, real HTTP)
+- [x] README.md + cluster launcher script
+
+---
+
+## NEXT STEPS (ordered by value, no Docker)
+
+### Near-term (extend what exists)
+- [ ] **Middle ring content filtering** - only replicate SEEDs/PARAGRAPHs to middle ring peers
+- [ ] **Persistent signals + triads** - store in SQLite instead of in-memory lists
+- [ ] **PARDES metadata auto-tagging** - tag content with PARDES layer info at creation
+- [ ] **Context hints with domain vocabulary** - wire Lynchpin noise vocabulary into challenge hints
+- [ ] **Discovery distribution automation** - auto-split and send keys to ring peers on triad creation
+- [ ] **Canary trap detection** - track which challenges get resolved incorrectly (reveals outsiders)
+
+### Medium-term (new capabilities)
+- [ ] **IPFS transport** - content-addressable storage via libp2p
+- [ ] **Bounty system** - information requests with path-attributed rewards (Shapley values)
+- [ ] **Polls + quadratic voting** - per-ring democratic tools
+- [ ] **Liquid delegation** - delegative voting within trust rings
+- [ ] **Credibility flagging** - flag questionable content, seek more context
+- [ ] **Ephemeral content** - TTL-based auto-purge honored by ring members
+- [ ] **Key rotation** - threshold signatures (k-of-n inner ring co-sign)
+
+### Long-term (resilience layer)
+- [ ] **LoRa/Meshtastic transport** - SEED-only propagation over radio
+- [ ] **Bluetooth mesh** - local cluster communication
+- [ ] **Packet radio (AX.25)** - last-resort transport
+- [ ] **Store-carry-forward (DTN)** - delay-tolerant networking
+- [ ] **DHT peer discovery** - Kademlia variant for beyond-Dunbar discovery
+- [ ] **Cross-ring linking** - inter-community connections with mutual approval
+- [ ] **Bounty algorithm A/B testing** - experiment framework for incentive curves
+- [ ] **Mobile PWA** - responsive progressive web app
+
+### Research (parallel track)
+- [ ] **CSP complexity proof** - prove riddle encoding inversion is NP-hard
+- [ ] **PARDES as error-correcting code** - formalize holographic 3-of-5 reconstruction
+- [ ] **Study SSB failure modes** - why Scuttlebutt didn't scale, what to avoid
+- [ ] **Shapley value computation** - efficient algorithms for bounty path attribution
+
+---
+
+## AGENT ROSTER
+
+| Agent | Role | Status |
+|-------|------|--------|
+| ARCHITECT | Structure, schemas, backlog | DONE |
+| DEV-CRYPTO | Identity, signing | DONE (19 tests) |
+| DEV-STORAGE | SQLite log | DONE (15 tests) |
+| DEV-RINGS | Trust rings | DONE (21 tests) |
+| DEV-GOSSIP | Peer sync | DONE (16 tests) |
+| DEV-API | FastAPI endpoints | DONE (33 tests) |
+| DEV-EJECT | Eject + canary | DONE (21 tests) |
+| DEV-RIDDLE | Riddle encoder | DONE (23 tests) |
+| DEV-DISCOVERY | Triangulated discovery | DONE (32 tests) |
+| DEV-INTEGRATION | API wiring + middleware + discovery API | DONE (10 tests) |
+| DEV-MULTINODE | Integration tests | DONE (5 tests) |
+| DEV-UI | HTMX frontend | DONE |
+| DEV-DOCS | README + launcher | DONE |
+
+---
+
+*Last updated: 2026-04-05 by ARCHITECT - MVP + Discovery complete, 195 tests*

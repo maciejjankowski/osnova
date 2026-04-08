@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Osnova - Noise Generator</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+  <style>
+    body {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      letter-spacing: -0.04em;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      color: var(--pico-muted-color);
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Model status bar */
+    #model-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      background: var(--pico-card-background-color);
+      border: 1px solid var(--pico-muted-border-color);
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #666;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    .status-dot.loading { background: #f5a623; animation: pulse 1s infinite; }
+    .status-dot.ready   { background: #2ecc71; }
+    .status-dot.error   { background: #e74c3c; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    progress {
+      height: 4px;
+      margin: 0;
+      flex: 1;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--pico-muted-border-color);
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.9rem;
+      color: var(--pico-muted-color);
+      cursor: pointer;
+      border-radius: 0;
+      outline: none;
+    }
+
+    .tab-btn:hover { color: var(--pico-color); }
+    .tab-btn.active {
+      color: var(--pico-primary);
+      border-bottom-color: var(--pico-primary);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Output area */
+    #output, #cover-output {
+      font-family: monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: var(--pico-code-background-color);
+      border: 1px solid var(--pico-muted-border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      min-height: 120px;
+      max-height: 400px;
+      overflow-y: auto;
+      color: var(--pico-code-color);
+    }
+
+    .output-placeholder {
+      color: var(--pico-muted-color);
+      font-style: italic;
+      font-family: inherit;
+    }
+
+    /* Model selector */
+    .model-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .model-row label { margin-bottom: 0; }
+
+    .model-row select { margin-bottom: 0; flex: 1; }
+
+    .model-row button { flex-shrink: 0; margin-bottom: 0; }
+
+    /* Copy button */
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+
+    .copy-btn {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      margin: 0;
+    }
+
+    /* Security badge */
+    .security-note {
+      font-size: 0.75rem;
+      color: var(--pico-muted-color);
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--pico-muted-border-color);
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    fieldset { margin-bottom: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .model-row { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Osnova / Noise Generator</h1>
+  <p class="subtitle">In-browser LLM - no data leaves this device</p>
+
+  <!-- Model status bar -->
+  <div id="model-status">
+    <span class="status-dot" id="status-dot"></span>
+    <span id="status-text">Model not loaded</span>
+    <progress id="load-progress" value="0" max="1" style="display:none;"></progress>
+  </div>
+
+  <!-- Model selector + load button -->
+  <div class="model-row">
+    <div style="flex:1;">
+      <label for="model-select">Model</label>
+      <select id="model-select">
+        <optgroup label="SmolLM2 (recommended - fast, small)">
+          <option value="SmolLM2-1.7B-Instruct-q4f16_1-MLC" selected>SmolLM2-1.7B q4f16 (~1 GB)</option>
+          <option value="SmolLM2-360M-Instruct-q4f16_1-MLC">SmolLM2-360M q4f16 (~250 MB)</option>
+          <option value="SmolLM2-135M-Instruct-q0f16-MLC">SmolLM2-135M q0f16 (~140 MB, fastest)</option>
+        </optgroup>
+        <optgroup label="Qwen (balanced quality)">
+          <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">Qwen2.5-0.5B q4f16 (~400 MB)</option>
+          <option value="Qwen2.5-1.5B-Instruct-q4f16_1-MLC">Qwen2.5-1.5B q4f16 (~1 GB)</option>
+        </optgroup>
+      </select>
+    </div>
+    <button id="load-btn" onclick="loadModel()">Load Model</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('noise', this)">Noise Constraints</button>
+    <button class="tab-btn" onclick="switchTab('cover', this)">Cover Text</button>
+  </div>
+
+  <!-- TAB: Noise Constraints -->
+  <div id="tab-noise" class="tab-panel active">
+    <p style="font-size:0.85rem; color:var(--pico-muted-color); margin-bottom:1rem;">
+      Generate plausible noise constraints in the same domain as the signal. Noise blurs pattern analysis by making the real signal indistinguishable from decoys.
+    </p>
+
+    <div class="grid-2">
+      <label>
+        Domain
+        <input type="text" id="noise-domain" placeholder="e.g. fishing, Baltic coast" />
+      </label>
+      <label>
+        Signal constraint (the real one)
+        <input type="text" id="noise-signal" placeholder="e.g. wind from NW above 4 Bft" />
+      </label>
+    </div>
+
+    <label>
+      Noise count
+      <input type="number" id="noise-count" value="5" min="1" max="20" style="max-width:120px;" />
+    </label>
+
+    <label>
+      Additional context (optional)
+      <input type="text" id="noise-context" placeholder="e.g. recreational angler, lake fishing only" />
+    </label>
+
+    <button id="gen-noise-btn" onclick="generateNoise()" disabled>Generate Noise</button>
+
+    <div class="output-header">
+      <small>Output</small>
+      <button class="copy-btn secondary copy-btn" onclick="copyOutput('output')">Copy</button>
+    </div>
+    <div id="output"><span class="output-placeholder">Generated noise constraints will appear here...</span></div>
+  </div>
+
+  <!-- TAB: Cover Text -->
+  <div id="tab-cover" class="tab-panel">
+    <p style="font-size:0.85rem; color:var(--pico-muted-color); margin-bottom:1rem;">
+      Generate natural-sounding text that embeds signal markers (proverbs, gematria references, alliteration patterns) without drawing attention to them.
+    </p>
+
+    <label>
+      Signal markers to embed
+      <input type="text" id="cover-markers" placeholder="e.g. proverb: still waters run deep | gematria: 72 | alliteration: S-sound" />
+    </label>
+
+    <div class="grid-2">
+      <label>
+        Topic / cover story
+        <input type="text" id="cover-topic" placeholder="e.g. travel blog post about Mazury lakes" />
+      </label>
+      <label>
+        Tone
+        <select id="cover-tone">
+          <option value="casual">Casual / conversational</option>
+          <option value="journalistic">Journalistic</option>
+          <option value="literary">Literary / reflective</option>
+          <option value="technical">Technical / informational</option>
+          <option value="social-media">Social media post</option>
+        </select>
+      </label>
+    </div>
+
+    <label>
+      Approximate length (words)
+      <input type="number" id="cover-length" value="120" min="30" max="500" style="max-width:120px;" />
+    </label>
+
+    <button id="gen-cover-btn" onclick="generateCover()" disabled>Generate Cover Text</button>
+
+    <div class="output-header">
+      <small>Output</small>
+      <button class="copy-btn secondary" onclick="copyOutput('cover-output')">Copy</button>
+    </div>
+    <div id="cover-output"><span class="output-placeholder">Generated cover text will appear here...</span></div>
+  </div>
+
+  <p class="security-note">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    All inference runs locally in your browser via WebGPU. The model is cached in IndexedDB after the first download. No data is sent to any server.
+  </p>
+
+  <script type="module">
+    // -----------------------------------------------------------------------
+    // WebLLM - imported from CDN as ES module (no build step required)
+    // -----------------------------------------------------------------------
+    import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+
+    // Expose to global scope so onclick handlers can reach these
+    let engine = null;
+    let isLoading = false;
+
+    // -----------------------------------------------------------------------
+    // Model loading
+    // -----------------------------------------------------------------------
+    window.loadModel = async function () {
+      if (isLoading) return;
+
+      const modelId = document.getElementById("model-select").value;
+      const loadBtn = document.getElementById("load-btn");
+      const statusDot = document.getElementById("status-dot");
+      const statusText = document.getElementById("status-text");
+      const progressEl = document.getElementById("load-progress");
+
+      isLoading = true;
+      loadBtn.disabled = true;
+      loadBtn.textContent = "Loading...";
+      statusDot.className = "status-dot loading";
+      progressEl.style.display = "block";
+      progressEl.value = 0;
+
+      try {
+        engine = await CreateMLCEngine(modelId, {
+          initProgressCallback: (progress) => {
+            statusText.textContent = progress.text || "Loading model...";
+            // progress.progress is 0-1 when available
+            if (typeof progress.progress === "number") {
+              progressEl.value = progress.progress;
+            }
+          },
+        });
+
+        statusDot.className = "status-dot ready";
+        statusText.textContent = `Ready - ${modelId}`;
+        progressEl.style.display = "none";
+        loadBtn.textContent = "Reload";
+        loadBtn.disabled = false;
+
+        // Enable generation buttons
+        document.getElementById("gen-noise-btn").disabled = false;
+        document.getElementById("gen-cover-btn").disabled = false;
+
+      } catch (err) {
+        statusDot.className = "status-dot error";
+        statusText.textContent = "Error: " + (err.message || String(err));
+        progressEl.style.display = "none";
+        loadBtn.textContent = "Retry";
+        loadBtn.disabled = false;
+        engine = null;
+        console.error("WebLLM load error:", err);
+      }
+
+      isLoading = false;
+    };
+
+    // -----------------------------------------------------------------------
+    // Noise constraint generation
+    // -----------------------------------------------------------------------
+    window.generateNoise = async function () {
+      if (!engine) {
+        alert("Load a model first.");
+        return;
+      }
+
+      const domain = document.getElementById("noise-domain").value.trim();
+      const signal = document.getElementById("noise-signal").value.trim();
+      const count = parseInt(document.getElementById("noise-count").value, 10) || 5;
+      const context = document.getElementById("noise-context").value.trim();
+      const outputEl = document.getElementById("output");
+      const btn = document.getElementById("gen-noise-btn");
+
+      if (!domain) { alert("Enter a domain."); return; }
+
+      btn.disabled = true;
+      btn.textContent = "Generating...";
+      outputEl.innerHTML = "";
+
+      const systemPrompt = `You are a steganographic noise generator for the Osnova system.
+Your job: given a domain and a real signal constraint, generate plausible decoy constraints in the same domain.
+The decoys must be:
+- Realistic and domain-appropriate
+- Similar in structure and specificity to the real signal
+- Not obviously fake
+- Varied (don't repeat the same pattern)
+
+Output ONLY a numbered list. No preamble. No explanation.`;
+
+      const userPrompt = [
+        `Domain: ${domain}`,
+        signal ? `Real signal constraint (do NOT include this verbatim in output): ${signal}` : "",
+        context ? `Context: ${context}` : "",
+        ``,
+        `Generate ${count} plausible noise constraints for this domain. Each should look like it could be a real operational constraint.`,
+      ].filter(Boolean).join("\n");
+
+      try {
+        const chunks = await engine.chat.completions.create({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.9,
+          stream: true,
+        });
+
+        let text = "";
+        for await (const chunk of chunks) {
+          const delta = chunk.choices[0]?.delta?.content || "";
+          text += delta;
+          outputEl.textContent = text;
+        }
+
+      } catch (err) {
+        outputEl.textContent = "Error: " + (err.message || String(err));
+        console.error("Generation error:", err);
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Generate Noise";
+    };
+
+    // -----------------------------------------------------------------------
+    // Cover text generation
+    // -----------------------------------------------------------------------
+    window.generateCover = async function () {
+      if (!engine) {
+        alert("Load a model first.");
+        return;
+      }
+
+      const markers = document.getElementById("cover-markers").value.trim();
+      const topic = document.getElementById("cover-topic").value.trim();
+      const tone = document.getElementById("cover-tone").value;
+      const length = parseInt(document.getElementById("cover-length").value, 10) || 120;
+      const outputEl = document.getElementById("cover-output");
+      const btn = document.getElementById("gen-cover-btn");
+
+      if (!markers) { alert("Enter signal markers to embed."); return; }
+      if (!topic) { alert("Enter a cover topic."); return; }
+
+      btn.disabled = true;
+      btn.textContent = "Generating...";
+      outputEl.innerHTML = "";
+
+      const toneDescriptions = {
+        "casual": "casual, conversational, first-person",
+        "journalistic": "journalistic, factual, third-person",
+        "literary": "literary, reflective, lyrical",
+        "technical": "technical, informational, precise",
+        "social-media": "social media post, brief, engaging",
+      };
+
+      const systemPrompt = `You are a steganographic text generator for the Osnova system.
+Your job: write natural-sounding text that embeds signal markers so seamlessly that they appear organic.
+Rules:
+- The markers must be present but never highlighted or explained
+- The text must read as genuine ${toneDescriptions[tone] || tone} writing
+- Do not announce the markers. They must appear as natural elements of the prose.
+- Target approximately ${length} words.
+Output ONLY the cover text. No meta-commentary.`;
+
+      const userPrompt = [
+        `Topic: ${topic}`,
+        `Markers to embed: ${markers}`,
+        `Tone: ${toneDescriptions[tone] || tone}`,
+        `Target length: ~${length} words`,
+      ].join("\n");
+
+      try {
+        const chunks = await engine.chat.completions.create({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.85,
+          stream: true,
+        });
+
+        let text = "";
+        for await (const chunk of chunks) {
+          const delta = chunk.choices[0]?.delta?.content || "";
+          text += delta;
+          outputEl.textContent = text;
+        }
+
+      } catch (err) {
+        outputEl.textContent = "Error: " + (err.message || String(err));
+        console.error("Generation error:", err);
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Generate Cover Text";
+    };
+
+    // -----------------------------------------------------------------------
+    // Copy to clipboard
+    // -----------------------------------------------------------------------
+    window.copyOutput = async function (elId) {
+      const el = document.getElementById(elId);
+      const text = el.textContent;
+      if (!text || el.querySelector(".output-placeholder")) return;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        // fallback for older browsers
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+    };
+
+    // -----------------------------------------------------------------------
+    // Tab switching
+    // -----------------------------------------------------------------------
+    window.switchTab = function (tabId, btn) {
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById("tab-" + tabId).classList.add("active");
+      btn.classList.add("active");
+    };
+
+    // -----------------------------------------------------------------------
+    // WebGPU availability check on load
+    // -----------------------------------------------------------------------
+    (function checkWebGPU() {
+      const statusText = document.getElementById("status-text");
+      if (!navigator.gpu) {
+        statusText.textContent = "WebGPU not available in this browser. Use Chrome 113+ or Edge 113+.";
+        document.getElementById("status-dot").className = "status-dot error";
+        document.getElementById("load-btn").disabled = true;
+      }
+    })();
+  </script>
+
+</body>
+</html>

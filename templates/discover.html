@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title_suffix %} | Discover{% endblock %}
+
+{% block content %}
+<h2>Discovery</h2>
+<p><small>Triangulated content addressing - MESSAGE + COUNTERMESSAGE + CHALLENGE. Machines see two candidates; ring members resolve the ambiguity.</small></p>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- Create Discovery Triad                                               -->
+<!-- ------------------------------------------------------------------ -->
+<article>
+  <h3>Create Discovery Triad</h3>
+  {% if posts %}
+  <form id="triad-form">
+    <label for="triad-post">Select a post</label>
+    <select id="triad-post" name="content_hash" required>
+      <option value="">-- choose a post --</option>
+      {% for post in posts %}
+      <option value="{{ post.content_hash }}">{{ post.body[:60] }}{% if post.body|length > 60 %}...{% endif %}</option>
+      {% endfor %}
+    </select>
+
+    <label for="triad-decoy">Decoy key (optional - auto-selected from peers if blank)</label>
+    <input type="text" id="triad-decoy" name="decoy_key" placeholder="hex public key of decoy peer" />
+
+    <button type="submit">Create Triad</button>
+  </form>
+  <div id="triad-result"></div>
+
+  <script>
+    document.getElementById('triad-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const content_hash = document.getElementById('triad-post').value;
+      const decoy_key = document.getElementById('triad-decoy').value.trim() || null;
+      const payload = { content_hash };
+      if (decoy_key) payload.decoy_key = decoy_key;
+
+      const resp = await fetch('/api/discovery/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = document.getElementById('triad-result');
+      if (resp.ok) {
+        const data = await resp.json();
+        result.innerHTML = `<ins>Triad created: <code>${data.triad_id}</code><br>
+          Challenge candidates: <code>${data.challenge.candidate_a}</code> vs <code>${data.challenge.candidate_b}</code><br>
+          Context hint: <code>${data.challenge.context_hint}</code></ins>`;
+      } else {
+        result.innerHTML = '<ins class="error">Failed to create triad.</ins>';
+      }
+    });
+  </script>
+  {% else %}
+  <p><em>No posts yet. <a href="/compose">Write one first.</a></em></p>
+  {% endif %}
+</article>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- Resolve Challenge                                                    -->
+<!-- ------------------------------------------------------------------ -->
+<article>
+  <h3>Resolve Challenge</h3>
+  <form id="resolve-form">
+    <label for="resolve-triad">Triad ID</label>
+    <input type="text" id="resolve-triad" name="triad_id" placeholder="triad_id" required />
+
+    <label for="resolve-candidate">Chosen candidate (fragment)</label>
+    <input type="text" id="resolve-candidate" name="chosen_candidate" placeholder="16-char hex fragment" required />
+
+    <label for="resolve-hash">Content hash (the one you found)</label>
+    <input type="text" id="resolve-hash" name="content_hash" placeholder="content hash" required />
+
+    <button type="submit">Verify</button>
+  </form>
+  <div id="resolve-result"></div>
+
+  <script>
+    document.getElementById('resolve-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const payload = {
+        triad_id: document.getElementById('resolve-triad').value.trim(),
+        chosen_candidate: document.getElementById('resolve-candidate').value.trim(),
+        content_hash: document.getElementById('resolve-hash').value.trim(),
+      };
+      const resp = await fetch('/api/discovery/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = document.getElementById('resolve-result');
+      if (resp.ok) {
+        const data = await resp.json();
+        result.innerHTML = data.valid
+          ? '<ins>Correct - you found the real holder.</ins>'
+          : '<ins class="error">Wrong candidate - outsider or incorrect guess.</ins>';
+      } else {
+        const err = await resp.json();
+        result.innerHTML = `<ins class="error">${err.detail || 'Error'}</ins>`;
+      }
+    });
+  </script>
+</article>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- Active Triads                                                        -->
+<!-- ------------------------------------------------------------------ -->
+<article>
+  <h3>Active Triads ({{ triads|length }})</h3>
+  {% if triads %}
+  <table>
+    <thead>
+      <tr>
+        <th>Triad ID</th>
+        <th>Challenge ID</th>
+        <th>Candidates</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for triad in triads %}
+      <tr>
+        <td><code>{{ triad.triad_id }}</code></td>
+        <td><code>{{ triad.challenge.challenge_id }}</code></td>
+        <td><code>{{ triad.challenge.candidate_a }}</code> / <code>{{ triad.challenge.candidate_b }}</code></td>
+        <td>{{ triad.created_at | datetimeformat }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p><em>No triads created yet.</em></p>
+  {% endif %}
+</article>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- Received Keys                                                        -->
+<!-- ------------------------------------------------------------------ -->
+<article>
+  <h3>Received Keys ({{ received_keys|length }})</h3>
+  {% if received_keys %}
+  <table>
+    <thead>
+      <tr>
+        <th>Key ID</th>
+        <th>Distribution</th>
+        <th>Content Hint</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for key in received_keys %}
+      <tr>
+        <td><code>{{ key.key_id }}</code></td>
+        <td><code>{{ key.distribution }}</code></td>
+        <td><code>{{ key.content_hint }}</code></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p><em>No keys received from peers yet.</em></p>
+  {% endif %}
+</article>
+
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title_suffix %} | Feed{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+  <h2>Feed</h2>
+  <a href="/compose" role="button" class="outline">+ New Post</a>
+</div>
+
+{% if posts %}
+  {% for post in posts %}
+  <article class="post-card" id="post-{{ post.content_hash[:8] }}">
+    <header class="post-header">
+      <span class="author-key" title="{{ post.author_key }}">{{ post.author_key[:8] }}...</span>
+      <span class="post-type type-{{ post.content_type }}">{{ post.content_type }}</span>
+      <span class="post-time">{{ post.timestamp | int | datetimeformat }}</span>
+    </header>
+
+    {% if post.content_type == 'reshare' and post.metadata.get('reshared_from') %}
+    <div class="reshare-notice">
+      <small>reshared from <span class="author-key" title="{{ post.metadata.reshared_from }}">{{ post.metadata.reshared_from[:8] }}...</span></small>
+    </div>
+    {% endif %}
+
+    <p class="post-body">{{ post.body }}</p>
+
+    <footer class="post-actions">
+      <button
+        class="outline small comment-toggle"
+        hx-get="/feed/posts/{{ post.content_hash }}/comments"
+        hx-target="#comments-{{ post.content_hash[:8] }}"
+        hx-swap="outerHTML"
+        hx-trigger="click"
+      >
+        Comments
+      </button>
+      <button
+        class="outline small"
+        hx-post="/api/posts/{{ post.content_hash }}/reshare"
+        hx-target="#post-{{ post.content_hash[:8] }}"
+        hx-swap="outerHTML"
+        hx-confirm="Reshare this post?"
+      >
+        Reshare
+      </button>
+    </footer>
+
+    <div id="comments-{{ post.content_hash[:8] }}"></div>
+  </article>
+  {% endfor %}
+{% else %}
+  <article>
+    <p>No posts yet. <a href="/compose">Write the first one.</a></p>
+  </article>
+{% endif %}
+{% endblock %}

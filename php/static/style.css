@@ -1,0 +1,759 @@
+/* Osnova - Threads-inspired dark UI on top of PicoCSS */
+
+/* ---------- Globals ---------- */
+:root {
+  --os-bg: #101010;
+  --os-surface: #1a1a1a;
+  --os-surface2: #242424;
+  --os-border: rgba(255,255,255,0.08);
+  --os-text: #f0f0f0;
+  --os-muted: rgba(255,255,255,0.45);
+  --os-accent: #fff;
+  --os-danger: #e74c3c;
+  --os-orange: #e67e22;
+  --os-radius: 12px;
+  --os-radius-sm: 8px;
+}
+
+html[data-theme="dark"] {
+  --pico-background-color: var(--os-bg);
+  --pico-card-background-color: var(--os-surface);
+  --pico-card-border-color: var(--os-border);
+}
+
+body {
+  background: var(--os-bg);
+  color: var(--os-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+/* ---------- Header / Nav ---------- */
+.osnova-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(16,16,16,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--os-border);
+  padding: 0 1rem;
+}
+
+.osnova-header nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0.75rem 0;
+  gap: 1rem;
+}
+
+.osnova-header nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.osnova-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--os-text);
+}
+
+.osnova-logo a {
+  color: inherit;
+  text-decoration: none;
+}
+
+nav a {
+  color: var(--os-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  transition: color 0.15s, background 0.15s;
+}
+
+nav a:hover {
+  color: var(--os-text);
+  background: rgba(255,255,255,0.06);
+}
+
+nav a.active {
+  color: var(--os-text);
+  font-weight: 600;
+  background: rgba(255,255,255,0.08);
+}
+
+nav a.eject-nav {
+  color: rgba(231, 76, 60, 0.7);
+}
+
+nav a.eject-nav:hover {
+  color: var(--os-danger);
+  background: rgba(231,76,60,0.1);
+}
+
+#osnova-identity-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+#osnova-identity {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--os-muted);
+  font-family: inherit;
+  opacity: 1;
+  cursor: pointer;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Main layout ---------- */
+main.container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+/* ---------- Footer ---------- */
+.osnova-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  opacity: 0.3;
+  font-size: 0.8rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--os-border);
+}
+
+/* ---------- Feed ---------- */
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--os-border);
+}
+
+.feed-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.feed-header a[role="button"] {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  border: 1px solid var(--os-border);
+  color: var(--os-text);
+  background: var(--os-surface2);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.feed-header a[role="button"]:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+/* Surfaced-by banner: "Bob replied" */
+.surfaced-banner {
+  font-size: 0.78rem;
+  color: var(--os-muted);
+  padding: 0.35rem 0 0.1rem 3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Post cards */
+.post-card {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--os-border);
+  background: transparent;
+  margin: 0;
+  border-radius: 0;
+}
+
+.post-card:last-child {
+  border-bottom: none;
+}
+
+/* Avatar */
+.post-avatar {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  max-width: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--os-surface2);
+  user-select: none;
+  letter-spacing: 0;
+  align-self: flex-start;
+}
+
+.post-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.post-author {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--os-text);
+  font-family: monospace;
+  letter-spacing: -0.02em;
+}
+
+.post-time {
+  font-size: 0.8rem;
+  color: var(--os-muted);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.post-type {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.type-post    { background: rgba(255,255,255,0.08); color: var(--os-muted); }
+.type-comment { background: rgba(100,200,100,0.15); color: #6dcc7c; }
+.type-reshare { background: rgba(100,150,255,0.15); color: #7aa6ff; }
+.type-article { background: rgba(255,200,100,0.15); color: #ffc863; }
+
+.post-body {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--os-text);
+  margin: 0 0 0.6rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.reshare-notice {
+  font-size: 0.8rem;
+  color: var(--os-muted);
+  margin-bottom: 0.4rem;
+}
+
+.post-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0;
+  border: none;
+}
+
+.post-actions button,
+.post-actions button[hx-post],
+.post-actions button[hx-get] {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--os-muted) !important;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: auto;
+}
+
+.post-actions button:hover,
+.post-actions button[hx-post]:hover,
+.post-actions button[hx-get]:hover {
+  color: var(--os-text) !important;
+  background: rgba(255,255,255,0.07) !important;
+}
+
+.post-actions button svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* ---------- Author keys ---------- */
+.author-key {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--os-muted);
+  cursor: default;
+}
+
+code.author-key {
+  background: none;
+  padding: 0;
+}
+
+/* ---------- Comments ---------- */
+.comments-section {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--os-border);
+}
+
+.comment-card {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--os-border);
+  font-size: 0.88rem;
+}
+
+.comment-card:last-of-type {
+  border-bottom: none;
+}
+
+.comment-card p {
+  margin: 0.2rem 0 0;
+  color: var(--os-text);
+  font-size: 0.88rem;
+}
+
+.comment-avatar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--os-surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.comment-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.comment-form {
+  margin-top: 0.75rem;
+}
+
+.comment-form .grid {
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.comment-form input {
+  margin-bottom: 0;
+  background: var(--os-surface2);
+  border-color: var(--os-border);
+  border-radius: var(--os-radius-sm);
+  font-size: 0.88rem;
+}
+
+.comment-form button {
+  font-size: 0.82rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--os-radius-sm);
+}
+
+.no-comments {
+  color: var(--os-muted);
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}
+
+/* ---------- Compose ---------- */
+.compose-container article {
+  background: var(--os-surface);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius);
+  padding: 1.25rem;
+}
+
+.compose-who {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.compose-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--os-surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.compose-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--os-text);
+}
+
+#body {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--os-border);
+  border-radius: 0;
+  padding: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--os-text);
+  resize: none;
+  width: 100%;
+  box-shadow: none;
+  outline: none;
+}
+
+#body:focus {
+  border-bottom-color: rgba(255,255,255,0.3);
+  box-shadow: none;
+}
+
+#body::placeholder {
+  color: var(--os-muted);
+}
+
+.compose-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.compose-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--os-muted);
+  cursor: pointer;
+}
+
+.compose-options input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+#compose-btn {
+  background: var(--os-text);
+  color: var(--os-bg);
+  border: none;
+  border-radius: 20px;
+  padding: 0.45rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  width: auto;
+}
+
+#compose-btn:hover {
+  opacity: 0.85;
+}
+
+#compose-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#compose-result {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
+#compose-result p {
+  color: var(--os-muted);
+}
+
+#compose-result a {
+  color: var(--os-text);
+}
+
+ins.error, .error {
+  color: var(--os-danger);
+  text-decoration: none;
+}
+
+/* ---------- Setup page ---------- */
+.setup-section {
+  background: var(--os-surface);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.setup-section h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.setup-section p {
+  font-size: 0.85rem;
+  color: var(--os-muted);
+  margin-bottom: 0.75rem;
+}
+
+.identity-box {
+  background: var(--os-surface2);
+  border-radius: var(--os-radius-sm);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.identity-box label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--os-muted);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.pubkey-full {
+  word-break: break-all;
+  font-size: 0.75rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--os-muted);
+  font-family: monospace;
+}
+
+.copy-btn {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 6px;
+}
+
+/* ---------- Nodes list ---------- */
+.peer-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.4rem;
+  background: var(--os-surface2);
+  border-radius: var(--os-radius-sm);
+  border: 1px solid var(--os-border);
+}
+
+.peer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.peer-info strong {
+  font-size: 0.88rem;
+}
+
+.peer-endpoint {
+  color: var(--os-muted);
+  font-size: 0.78rem;
+  font-family: monospace;
+}
+
+.peer-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.peer-actions button, button.small, .small {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.78rem;
+  border-radius: 6px;
+}
+
+/* ---------- Ring levels ---------- */
+.ring-stats {
+  margin-bottom: 1.25rem;
+  gap: 0.75rem;
+}
+
+.ring-stat {
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: var(--os-radius-sm);
+  border: 1px solid var(--os-border);
+  background: var(--os-surface);
+}
+
+.ring-stat strong {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.ring-stat small {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: var(--os-muted);
+}
+
+.ring-core, .ring-border-core { border-left: 3px solid #f39c12; }
+.ring-inner, .ring-border-inner { border-left: 3px solid #3498db; }
+.ring-middle, .ring-border-middle { border-left: 3px solid #2ecc71; }
+.ring-outer, .ring-border-outer { border-left: 3px solid #95a5a6; }
+
+.ring-core { background: rgba(243,156,18,0.06); }
+.ring-inner { background: rgba(52,152,219,0.06); }
+.ring-middle { background: rgba(46,204,113,0.06); }
+.ring-outer { background: rgba(149,165,166,0.06); }
+
+.ring-level-heading {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--os-muted);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+/* ---------- Eject / Canary ---------- */
+.eject-warning {
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.3);
+  border-radius: var(--os-radius-sm);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.88rem;
+}
+
+.canary-section {
+  border-left: 3px solid var(--os-orange);
+}
+
+.eject-section {
+  border-left: 3px solid var(--os-danger);
+}
+
+.canary-btn {
+  background: var(--os-orange);
+  border-color: var(--os-orange);
+  color: #fff;
+  border-radius: 8px;
+}
+
+.canary-btn:hover {
+  background: #d35400;
+  border-color: #d35400;
+}
+
+.eject-btn {
+  background: var(--os-danger);
+  border-color: var(--os-danger);
+  color: #fff;
+  border-radius: 8px;
+}
+
+.eject-btn:hover {
+  background: #c0392b;
+  border-color: #c0392b;
+}
+
+/* feed uses divs - no article override needed */
+
+/* ---------- QR ---------- */
+#profile-qr {
+  background: #fff;
+  padding: 1rem;
+  border-radius: var(--os-radius-sm);
+  display: inline-block;
+  text-align: center;
+}
+
+/* ---------- Utilities ---------- */
+.sync-result {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
+/* ---------- Empty state ---------- */
+.empty-feed {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--os-muted);
+}
+
+.empty-feed a {
+  color: var(--os-text);
+  font-weight: 600;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .osnova-header nav {
+    padding: 0.6rem 0;
+  }
+
+  nav a {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.82rem;
+  }
+
+  main.container {
+    padding: 1rem 0.75rem;
+  }
+}

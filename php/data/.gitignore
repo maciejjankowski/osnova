@@ -1,0 +1,5 @@
+# SQLite databases and key material - never commit
+*.db
+*.db-wal
+*.db-shm
+identity.key

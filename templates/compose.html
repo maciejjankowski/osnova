@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title_suffix %} | Compose{% endblock %}
+
+{% block content %}
+<h2>New Post</h2>
+
+<article>
+  <form
+    hx-post="/api/posts"
+    hx-target="#compose-result"
+    hx-swap="innerHTML"
+    id="compose-form"
+  >
+    <label for="body">Post content</label>
+    <textarea
+      id="body"
+      name="body"
+      rows="5"
+      placeholder="What truth needs to be said?"
+      required
+    ></textarea>
+
+    <label>
+      <input type="checkbox" name="encode_riddle" value="1" id="encode-riddle" />
+      Encode with riddle (PARDES layer)
+    </label>
+
+    <button type="submit">Publish</button>
+  </form>
+
+  <div id="compose-result"></div>
+</article>
+
+<script>
+  // Handle HTMX post - the form sends JSON but we need to intercept
+  document.getElementById('compose-form').addEventListener('htmx:configRequest', function(evt) {
+    const form = evt.target;
+    const body = form.querySelector('#body').value;
+    const encodeRiddle = form.querySelector('#encode-riddle').checked;
+
+    evt.detail.parameters = {};
+    evt.detail.headers['Content-Type'] = 'application/json';
+    evt.detail.body = JSON.stringify({
+      body: body,
+      metadata: encodeRiddle ? { encode_riddle: true } : {}
+    });
+  });
+
+  // On success, redirect to feed
+  document.getElementById('compose-form').addEventListener('htmx:afterRequest', function(evt) {
+    if (evt.detail.xhr.status === 200) {
+      document.getElementById('compose-result').innerHTML =
+        '<ins>Post published. <a href="/feed">Back to feed</a></ins>';
+      evt.target.reset();
+    } else {
+      document.getElementById('compose-result').innerHTML =
+        '<ins class="error">Error publishing post. Try again.</ins>';
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Osnova{% block title_suffix %} | Feed{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+</head>
+<body>
+  <header class="container-fluid osnova-header">
+    <nav>
+      <ul>
+        <li><strong class="osnova-logo">osnova</strong></li>
+      </ul>
+      <ul>
+        <li><a href="/feed" class="{% if active == 'feed' %}active{% endif %}">Feed</a></li>
+        <li><a href="/compose" class="{% if active == 'compose' %}active{% endif %}">Compose</a></li>
+        <li><a href="/rings" class="{% if active == 'rings' %}active{% endif %}">Rings</a></li>
+        <li><a href="/identity" class="{% if active == 'identity' %}active{% endif %}">Identity</a></li>
+        <li><a href="/discover" class="{% if active == 'discover' %}active{% endif %}">Discover</a></li>
+        <li><a href="/eject" class="eject-nav {% if active == 'eject' %}active{% endif %}">Eject</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="container-fluid osnova-footer">
+    <small>
+      Osnova - Decentralized truth network · 
+      <a href="https://github.com/maciejjankowski/osnova" target="_blank" rel="noopener">GitHub</a>
+    </small>
+  </footer>
+</body>
+</html>

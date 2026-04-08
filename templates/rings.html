@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title_suffix %} | Rings{% endblock %}
+
+{% block content %}
+<h2>Trust Rings</h2>
+
+<div class="ring-stats grid">
+  {% for level, count in stats.items() %}
+  <div class="ring-stat ring-{{ level }}">
+    <strong>{{ count }}</strong>
+    <small>{{ level }}</small>
+  </div>
+  {% endfor %}
+</div>
+
+<details open>
+  <summary><strong>Add Peer</strong></summary>
+  <article>
+    <form
+      hx-post="/api/rings/peers"
+      hx-target="#rings-list"
+      hx-swap="outerHTML"
+      id="add-peer-form"
+    >
+      <div class="grid">
+        <label>
+          Public Key
+          <input type="text" name="public_key" placeholder="hex-encoded Ed25519 key" required />
+        </label>
+        <label>
+          Display Name
+          <input type="text" name="display_name" placeholder="Alice Node" required />
+        </label>
+      </div>
+      <div class="grid">
+        <label>
+          Endpoint
+          <input type="text" name="endpoint" placeholder="http://localhost:8001" required />
+        </label>
+        <label>
+          Ring Level
+          <select name="ring_level" required>
+            <option value="core">Core (~5)</option>
+            <option value="inner">Inner (~15)</option>
+            <option value="middle" selected>Middle (~50)</option>
+            <option value="outer">Outer (~95)</option>
+          </select>
+        </label>
+      </div>
+      <button type="submit">Add Peer</button>
+    </form>
+    <div id="add-peer-result"></div>
+  </article>
+</details>
+
+<div id="rings-list">
+  {% include "rings_list_partial.html" %}
+</div>
+
+<script>
+  document.getElementById('add-peer-form').addEventListener('htmx:configRequest', function(evt) {
+    const form = evt.target;
+    evt.detail.parameters = {};
+    evt.detail.headers['Content-Type'] = 'application/json';
+    evt.detail.body = JSON.stringify({
+      public_key: form.querySelector('[name=public_key]').value,
+      display_name: form.querySelector('[name=display_name]').value,
+      endpoint: form.querySelector('[name=endpoint]').value,
+      ring_level: form.querySelector('[name=ring_level]').value,
+    });
+  });
+
+  document.getElementById('add-peer-form').addEventListener('htmx:afterRequest', function(evt) {
+    if (evt.detail.xhr.status === 200) {
+      evt.target.reset();
+      htmx.ajax('GET', '/rings/list', {target: '#rings-list', swap: 'outerHTML'});
+    } else {
+      document.getElementById('add-peer-result').innerHTML =
+        '<mark>Error: ' + (JSON.parse(evt.detail.xhr.responseText).detail || 'Unknown error') + '</mark>';
+    }
+  });
+</script>
+{% endblock %}

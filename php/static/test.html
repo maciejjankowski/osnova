@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Osnova JS Tests</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
+  <script src="/static/osnova.js"></script>
+  <style>
+    .pass { color: #2ecc71; }
+    .fail { color: #e74c3c; }
+    pre   { font-size: 0.8rem; background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<main class="container">
+  <h2>Osnova JS Tests</h2>
+  <p>Tests keypair generation, content hash, signing, and round-trips.</p>
+  <button onclick="runTests()" id="run-btn">Run Tests</button>
+  <div id="results" style="margin-top:1rem;"></div>
+</main>
+
+<script>
+  // ---------------------------------------------------------------------------
+  // Tiny test harness
+  // ---------------------------------------------------------------------------
+  let pass = 0, fail = 0;
+  const results = [];
+
+  async function t(name, fn) {
+    try {
+      await fn();
+      pass++;
+      results.push({ ok: true, name });
+    } catch(e) {
+      fail++;
+      results.push({ ok: false, name, msg: e.message });
+    }
+  }
+
+  function assert(v, msg)  { if (!v)     throw new Error(msg || 'Expected true'); }
+  function eq(a, b, msg)   { if (a !== b) throw new Error((msg || '') + `: expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`); }
+
+  // ---------------------------------------------------------------------------
+  // pyFloatStr tests (copy from osnova.js scope - function is module-local)
+  // We test it indirectly via contentHash, and directly via the known cases below.
+  // ---------------------------------------------------------------------------
+
+  // Reimport pyFloatStr for unit testing - it's defined in osnova.js global scope
+  // (osnova.js is not a module, so globals are accessible)
+
+  async function runTests() {
+    pass = 0; fail = 0; results.length = 0;
+
+    // -------------------------------------------------------------------------
+    // 1. pyFloatStr known values
+    // -------------------------------------------------------------------------
+    await t('pyFloatStr: integer timestamp', () => {
+      eq(pyFloatStr(1712345678.0), '1712345678.0');
+    });
+    await t('pyFloatStr: one decimal', () => {
+      eq(pyFloatStr(1712345678.1), '1712345678.1');
+    });
+    await t('pyFloatStr: 6 decimals no trailing zeros', () => {
+      eq(pyFloatStr(1712345678.123456), '1712345678.123456');
+    });
+    await t('pyFloatStr: trailing zeros stripped', () => {
+      // 1712345678.100000 -> '1712345678.1'
+      const v = 1712345678.1; // JS float, trailing zeros not stored
+      eq(pyFloatStr(v), '1712345678.1');
+    });
+    await t('pyFloatStr: zero', () => {
+      eq(pyFloatStr(0.0), '0.0');
+    });
+    await t('pyFloatStr: one', () => {
+      eq(pyFloatStr(1.0), '1.0');
+    });
+
+    // -------------------------------------------------------------------------
+    // 2. Keypair generation
+    // -------------------------------------------------------------------------
+    await t('Keypair generation produces 64-char public key (hex)', () => {
+      const kp = Osnova.getKeypair();
+      assert(kp.publicKey.length === 64, `publicKey length ${kp.publicKey.length}`);
+      assert(kp.secretKey.length === 128, `secretKey length ${kp.secretKey.length}`);
+      assert(/^[0-9a-f]+$/.test(kp.publicKey), 'publicKey is hex');
+    });
+
+    await t('Export/import keypair round-trip', () => {
+      const exported = Osnova.exportKeypair();
+      assert(exported !== null, 'export not null');
+      const parsed = JSON.parse(exported);
+      assert(parsed.publicKey && parsed.secretKey, 'parsed has keys');
+      const ok = Osnova.importKeypair(exported);
+      assert(ok, 'import returned true');
+      eq(Osnova.getPublicKey(), parsed.publicKey, 'publicKey unchanged after import');
+    });
+
+    await t('setDisplayName persists', () => {
+      Osnova.setDisplayName('TestUser');
+      eq(Osnova.getDisplayName(), 'TestUser', 'display name');
+      Osnova.setDisplayName('Anonymous'); // restore
+    });
+
+    // -------------------------------------------------------------------------
+    // 3. Content hash computation
+    // -------------------------------------------------------------------------
+
+    // Known test vector: matches PHP crypto_content_hash()
+    // We compute it fresh and verify structure (cross-platform match is tested in PHP tests)
+    await t('contentHash is a 64-char hex string', async () => {
+      const kp = Osnova.getKeypair();
+      const h  = await Osnova.contentHash(kp.publicKey, 'post', 'hello', null, 1712345678.0);
+      eq(h.length, 64, 'hash length');
+      assert(/^[0-9a-f]+$/.test(h), 'is hex');
+    });
+
+    await t('contentHash: parent_hash=null uses "None" (Python compat)', async () => {
+      const pk = ''.padEnd(64, 'a'); // fake 32-byte key
+      const h1 = await Osnova.contentHash(pk, 'post', 'body', null, 1712345678.0);
+      const h2 = await Osnova.contentHash(pk, 'post', 'body', undefined, 1712345678.0);
+      eq(h1, h2, 'null and undefined both map to "None"');
+    });
+
+    await t('contentHash: same inputs produce same hash', async () => {
+      const kp = Osnova.getKeypair();
+      const ts = 1712345678.123;
+      const h1 = await Osnova.contentHash(kp.publicKey, 'post', 'test body', null, ts);
+      const h2 = await Osnova.contentHash(kp.publicKey, 'post', 'test body', null, ts);
+      eq(h1, h2, 'deterministic');
+    });
+
+    await t('contentHash: different body produces different hash', async () => {
+      const kp = Osnova.getKeypair();
+      const ts = 1712345678.0;
+      const h1 = await Osnova.contentHash(kp.publicKey, 'post', 'body A', null, ts);
+      const h2 = await Osnova.contentHash(kp.publicKey, 'post', 'body B', null, ts);
+      assert(h1 !== h2, 'different bodies -> different hashes');
+    });
+
+    // -------------------------------------------------------------------------
+    // 4. Signing and verification round-trip (nacl)
+    // -------------------------------------------------------------------------
+    await t('Sign and verify round-trip', async () => {
+      const kp      = Osnova.getKeypair();
+      const entry   = await Osnova.createSignedEntry('Hello Osnova', 'post', null, {});
+      const msgBytes = new TextEncoder().encode(entry.content_hash);
+      const sigBytes = hexToBytes(entry.signature);
+      const pkBytes  = hexToBytes(entry.author_key);
+      const valid    = nacl.sign.detached.verify(msgBytes, sigBytes, pkBytes);
+      assert(valid, 'signature should verify');
+    });
+
+    await t('createSignedEntry produces required fields', async () => {
+      const entry = await Osnova.createSignedEntry('Test', 'post', null, {test: true});
+      assert(entry.author_key,   'has author_key');
+      assert(entry.content_hash, 'has content_hash');
+      assert(entry.signature,    'has signature');
+      eq(entry.content_type, 'post', 'content_type');
+      eq(entry.body, 'Test', 'body');
+      assert(entry.timestamp > 0, 'timestamp > 0');
+      eq(entry.parent_hash, null, 'parent_hash null');
+    });
+
+    await t('createSignedEntry: content_hash matches manual computation', async () => {
+      const kp   = Osnova.getKeypair();
+      const entry = await Osnova.createSignedEntry('Consistency check', 'post', null, {});
+      const rehash = await Osnova.contentHash(entry.author_key, entry.content_type, entry.body, entry.parent_hash, entry.timestamp);
+      eq(entry.content_hash, rehash, 'content_hash is consistent');
+    });
+
+    await t('createSignedEntry with parent_hash', async () => {
+      const parentHash = 'a'.repeat(64);
+      const entry      = await Osnova.createSignedEntry('Reply', 'comment', parentHash, {});
+      eq(entry.parent_hash, parentHash, 'parent_hash set');
+      eq(entry.content_type, 'comment', 'content_type');
+    });
+
+    await t('Bad signature does not verify', async () => {
+      const entry    = await Osnova.createSignedEntry('Bad sig test', 'post', null, {});
+      const msgBytes = new TextEncoder().encode(entry.content_hash);
+      const badSig   = new Uint8Array(64).fill(0);
+      const pkBytes  = hexToBytes(entry.author_key);
+      const valid    = nacl.sign.detached.verify(msgBytes, badSig, pkBytes);
+      assert(!valid, 'bad signature should not verify');
+    });
+
+    // -------------------------------------------------------------------------
+    // 5. Node management
+    // -------------------------------------------------------------------------
+    await t('addNode / removeNode / getNodes', () => {
+      const original = Osnova.getNodes().slice();
+      Osnova.addNode('https://test.example.com');
+      assert(Osnova.getNodes().includes('https://test.example.com'), 'node added');
+      Osnova.removeNode('https://test.example.com');
+      assert(!Osnova.getNodes().includes('https://test.example.com'), 'node removed');
+      // Restore
+      Osnova.setNodes(original);
+    });
+
+    // -------------------------------------------------------------------------
+    // Render results
+    // -------------------------------------------------------------------------
+    const el = document.getElementById('results');
+    const summary = `<p><strong>${pass} passed, ${fail} failed</strong></p>`;
+    const rows = results.map(r =>
+      `<div class="${r.ok ? 'pass' : 'fail'}">${r.ok ? '✓' : '✗'} ${r.name}${r.msg ? ': <code>' + r.msg + '</code>' : ''}</div>`
+    ).join('\n');
+    el.innerHTML = summary + rows;
+  }
+</script>
+</body>
+</html>
