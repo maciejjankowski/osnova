@@ -1,8 +1,47 @@
 # Osnova
 
-Decentralized truth network with Dunbar-capped trust rings and PARDES integrity.
+**Decentralized truth network with Dunbar-capped trust rings and PARDES integrity.**
 
 Each user runs a node. Nodes gossip signed content over HTTP. Trust is local: you decide who's in your core, inner, middle, and outer rings. No blockchain, no global state, no consensus - just signed append-only logs and pull-based sync.
+
+**Live instance:** https://va.evil1.org
+
+---
+
+## Feature Status (2026-04-08)
+
+### ✅ Core (MVP + Discovery)
+- Ed25519 client-side identity
+- SQLite append-only content log
+- Dunbar-capped trust rings (5/15/50/95)
+- Gossip-based HTTP sync
+- HTMX frontend
+- Triangulated discovery protocol
+- Signal layer (adversarial resilience)
+- Eject protocol (leave with data)
+
+### ✅ Near-term Features (6/6)
+- **PARDES auto-tagging** - Detects SEED/PARAGRAPH/PAGE/DOCUMENT/SYSTEM layers
+- **Middle ring filtering** - SEEDs + PARAGRAPHs only to middle ring
+- **Persistent signals/triads** - SQLite storage, survives restarts
+- **Lynchpin vocabulary** - Cultural context hints (Polish proverbs, biblical refs)
+- **Discovery auto-distribution** - Auto-split keys across inner ring
+- **Canary trap detection** - Tracks failed challenges, identifies outsiders
+
+### ✅ Medium-term Features (7/7)
+- **Credibility flagging** - Community-driven content verification
+- **Ephemeral content** - TTL-based auto-purge
+- **Polls + quadratic voting** - Democratic tools, tyranny-resistant
+- **Liquid delegation** - Transitive vote delegation within rings
+- **Bounty system** - Information requests with Shapley value rewards
+- **Key rotation** - k-of-n threshold signature coordination
+
+### 🔜 Long-term (Resilience)
+- LoRa/Meshtastic transport
+- Bluetooth mesh
+- Packet radio (AX.25)
+- Store-carry-forward (DTN)
+- IPFS transport
 
 ---
 
