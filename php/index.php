@@ -24,6 +24,7 @@ require_once __DIR__ . '/api/discovery.php';
 require_once __DIR__ . '/api/gigs.php';
 require_once __DIR__ . '/api/capabilities.php';
 require_once __DIR__ . '/api/messages.php';
+require_once __DIR__ . '/api/canary.php';
 
 // ---------------------------------------------------------------------------
 // Shared helper functions
@@ -92,6 +93,7 @@ if (count($segments) >= 2 && $segments[0] === 'api') {
         $api === 'gigs'         => api_gigs_handler($method, $segments, $kp, $log, $rings),
         $api === 'capabilities' => api_capabilities_handler($method, $segments, $kp, $rings),
         $api === 'messages'     => api_messages_handler($method, $segments, $kp, $log),
+        $api === 'canary'       => api_canary_handler($method, $segments, $kp, $log),
         default                 => json_error(404, "Unknown API endpoint: /api/{$api}"),
     };
     exit;
@@ -279,6 +281,10 @@ match ($page) {
         
         $messages = $messageStore->getInbox($kp['public']);
         render_page('messages', ['messages' => $messages], 'messages', 'Messages');
+    })(),
+    
+    'canary' => (function() {
+        render_page('canary', [], 'canary', 'Canary System');
     })(),
 
     default => (function() use ($path) {
