@@ -22,6 +22,8 @@ require_once __DIR__ . '/api/identity.php';
 require_once __DIR__ . '/api/signals.php';
 require_once __DIR__ . '/api/discovery.php';
 require_once __DIR__ . '/api/gigs.php';
+require_once __DIR__ . '/api/capabilities.php';
+require_once __DIR__ . '/api/messages.php';
 
 // ---------------------------------------------------------------------------
 // Shared helper functions
@@ -81,14 +83,16 @@ if (count($segments) >= 2 && $segments[0] === 'api') {
     $api = $segments[1] ?? '';
 
     match (true) {
-        $api === 'posts'     => api_posts_handler($method, $segments, $kp, $log),
-        $api === 'rings'     => api_rings_handler($method, $segments, $rings),
-        $api === 'sync'      => api_sync_handler($method, $segments, $kp, $log, $rings, $gossip),
-        $api === 'identity'  => api_identity_handler($method, $kp),
-        $api === 'signals'   => api_signals_handler($method, $segments, $kp, $log, $rings, $sigStore),
-        $api === 'discovery' => api_discovery_handler($method, $segments, $kp, $rings, $triadStore),
-        $api === 'gigs'      => api_gigs_handler($method, $segments, $kp, $log, $rings),
-        default              => json_error(404, "Unknown API endpoint: /api/{$api}"),
+        $api === 'posts'        => api_posts_handler($method, $segments, $kp, $log),
+        $api === 'rings'        => api_rings_handler($method, $segments, $rings),
+        $api === 'sync'         => api_sync_handler($method, $segments, $kp, $log, $rings, $gossip),
+        $api === 'identity'     => api_identity_handler($method, $kp),
+        $api === 'signals'      => api_signals_handler($method, $segments, $kp, $log, $rings, $sigStore),
+        $api === 'discovery'    => api_discovery_handler($method, $segments, $kp, $rings, $triadStore),
+        $api === 'gigs'         => api_gigs_handler($method, $segments, $kp, $log, $rings),
+        $api === 'capabilities' => api_capabilities_handler($method, $segments, $kp, $rings),
+        $api === 'messages'     => api_messages_handler($method, $segments, $kp, $log),
+        default                 => json_error(404, "Unknown API endpoint: /api/{$api}"),
     };
     exit;
 }
@@ -264,6 +268,17 @@ match ($page) {
         
         $gigs = $gigStore->listGigs(20, 0);
         render_page('gigs', ['gigs' => $gigs], 'gigs', 'Gigs');
+    })(),
+    
+    'messages' => (function() use ($kp) {
+        global $messageStore;
+        if (!isset($messageStore)) {
+            require_once __DIR__ . '/api/messages.php';
+            $messageStore = new MessageStore(DATA_DIR . '/messages.db');
+        }
+        
+        $messages = $messageStore->getInbox($kp['public']);
+        render_page('messages', ['messages' => $messages], 'messages', 'Messages');
     })(),
 
     default => (function() use ($path) {

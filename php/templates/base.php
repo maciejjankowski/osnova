@@ -20,10 +20,12 @@ $active = $active ?? '';
   <title>Osnova | <?= htmlspecialchars($title) ?></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
   <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/css/osnova.css" />
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <!-- tweetnacl: Ed25519 in the browser, no npm needed -->
   <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl-fast.min.js"></script>
+  <script src="/static/js/stego.js" defer></script>
   <script src="/static/osnova.js" defer></script>
 </head>
 <body>
@@ -36,6 +38,8 @@ $active = $active ?? '';
         <li><a href="/feed"     <?= $active === 'feed'     ? 'class="active"' : '' ?>>Feed</a></li>
         <li><a href="/compose"  <?= $active === 'compose'  ? 'class="active"' : '' ?>>Compose</a></li>
         <li><a href="/rings"    <?= $active === 'rings'    ? 'class="active"' : '' ?>>Rings</a></li>
+        <li><a href="/gigs"     <?= $active === 'gigs'     ? 'class="active"' : '' ?>>💼 Gigs</a></li>
+        <li><a href="/messages" <?= $active === 'messages' ? 'class="active"' : '' ?>>📬 Messages</a></li>
         <li><a href="/discover" <?= $active === 'discover' ? 'class="active"' : '' ?>>Discover</a></li>
         <li><a href="/eject"    class="eject-nav <?= $active === 'eject' ? 'active' : '' ?>">Eject</a></li>
       </ul>
