@@ -11,20 +11,49 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/loader.php';
 
 // ---------------------------------------------------------------------------
-// API handlers
+// Extension Loading
 // ---------------------------------------------------------------------------
-require_once __DIR__ . '/api/posts.php';
-require_once __DIR__ . '/api/rings.php';
-require_once __DIR__ . '/api/sync.php';
-require_once __DIR__ . '/api/identity.php';
-require_once __DIR__ . '/api/signals.php';
-require_once __DIR__ . '/api/discovery.php';
-require_once __DIR__ . '/api/gigs.php';
-require_once __DIR__ . '/api/capabilities.php';
-require_once __DIR__ . '/api/messages.php';
-require_once __DIR__ . '/api/canary.php';
+$userPubkey = $_GET['pubkey'] ?? $_POST['pubkey'] ?? null;
+$context = [
+    'following' => [], // TODO: load from storage
+    'recent_posts' => [], // TODO: load from storage
+    'ring_members' => [], // TODO: load from rings
+    'trusted_nodes' => [], // TODO: load from config
+    'cookie_consent' => $_COOKIE['osnova_caps'] ?? false,
+    'client_extensions' => $_SERVER['HTTP_X_OSNOVA_CAPS'] ?? false,
+    'behavior' => [] // TODO: load behavioral profile
+];
+
+$loader = init_loader($userPubkey, $context);
+
+// ---------------------------------------------------------------------------
+// Core API handlers (ALWAYS loaded)
+// ---------------------------------------------------------------------------
+require_once __DIR__ . '/core/api/posts.php';
+require_once __DIR__ . '/core/api/rings.php';
+require_once __DIR__ . '/core/api/sync.php';
+require_once __DIR__ . '/core/api/identity.php';
+require_once __DIR__ . '/core/api/discovery.php';
+require_once __DIR__ . '/core/api/gigs.php';
+require_once __DIR__ . '/core/api/messages.php';
+
+// ---------------------------------------------------------------------------
+// Extension API handlers (CONDITIONALLY loaded)
+// ---------------------------------------------------------------------------
+if ($loader->isActive('canary')) {
+    require_once __DIR__ . '/extensions/canary/api/canary.php';
+}
+
+if ($loader->isActive('signals')) {
+    require_once __DIR__ . '/extensions/signals/api/signals.php';
+}
+
+if ($loader->isActive('phantom') || $loader->isActive('stego')) {
+    require_once __DIR__ . '/extensions/shared/capabilities.php';
+}
 
 // ---------------------------------------------------------------------------
 // Shared helper functions

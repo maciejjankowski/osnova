@@ -4,6 +4,8 @@
  */
 
 require_once __DIR__ . '/../lib/canary_extended.php';
+require_once __DIR__ . '/../../core/lib/storage.php';
+require_once __DIR__ . '/../../core/lib/crypto.php';
 
 function api_canary_handler(string $method, array $segments, array $kp, object $log): void {
     global $canarySystem;
