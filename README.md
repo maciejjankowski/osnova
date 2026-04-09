@@ -1,262 +1,403 @@
-# Osnova
+# Osnova - Social Network meets Whistleblower Haven
 
-**Decentralized truth network with Dunbar-capped trust rings and PARDES integrity.**
+**A dual-use decentralized platform:** Engaging social network + gig marketplace on the surface. Military-grade censorship-resistant whistleblower network underneath.
 
-Each user runs a node. Nodes gossip signed content over HTTP. Trust is local: you decide who's in your core, inner, middle, and outer rings. No blockchain, no global state, no consensus - just signed append-only logs and pull-based sync.
-
-**Live instance:** https://va.evil1.org
+**Status:** Production Ready (Phase 1-3 complete)  
+**Live Demo:** https://va.evil1.org  
+**Full Specification:** [SPEC.md](SPEC.md)
 
 ---
 
-## Feature Status (2026-04-08)
+## Why Osnova?
 
-### ✅ Core (MVP + Discovery)
-- Ed25519 client-side identity
-- SQLite append-only content log
-- Dunbar-capped trust rings (5/15/50/95)
-- Gossip-based HTTP sync
-- HTMX frontend
-- Triangulated discovery protocol
-- Signal layer (adversarial resilience)
-- Eject protocol (leave with data)
+90% of users get a privacy-respecting social network with economic utility.  
+10% who need it get the most censorship-resistant whistleblower platform ever built.
 
-### ✅ Near-term Features (6/6)
-- **PARDES auto-tagging** - Detects SEED/PARAGRAPH/PAGE/DOCUMENT/SYSTEM layers
-- **Middle ring filtering** - SEEDs + PARAGRAPHs only to middle ring
-- **Persistent signals/triads** - SQLite storage, survives restarts
-- **Lynchpin vocabulary** - Cultural context hints (Polish proverbs, biblical refs)
-- **Discovery auto-distribution** - Auto-split keys across inner ring
-- **Canary trap detection** - Tracks failed challenges, identifies outsiders
+### For Everyone:
+- 👥 **Ring-based social network** - Control who sees what (Ring 0-3)
+- 💼 **Gig marketplace** - Earn money helping your network
+- 🔒 **Encrypted by default** - No corporate tracking
+- 📱 **Mobile-first design** - Works everywhere
+- 🌐 **Decentralized** - No single point of failure
 
-### ✅ Medium-term Features (7/7)
-- **Credibility flagging** - Community-driven content verification
-- **Ephemeral content** - TTL-based auto-purge
-- **Polls + quadratic voting** - Democratic tools, tyranny-resistant
-- **Liquid delegation** - Transitive vote delegation within rings
-- **Bounty system** - Information requests with Shapley value rewards
-- **Key rotation** - k-of-n threshold signature coordination
-
-### 🔜 Long-term (Resilience)
-- LoRa/Meshtastic transport
-- Bluetooth mesh
-- Packet radio (AX.25)
-- Store-carry-forward (DTN)
-- IPFS transport
+### For Whistleblowers:
+- 🕊️ **Dead man's switch** - Auto-release if you disappear
+- 🧩 **Message fragmentation** - Distributed across 100+ pieces
+- 🔄 **Cascade release** - Exponentially resistant to suppression
+- 🎭 **Plausible deniability** - Every feature has dual purpose
+- 🛡️ **Phantom users** - Social handshake authentication
 
 ---
 
 ## Quick Start
 
-```bash
-# 1. Clone and install
-git clone <repo-url> osnova && cd osnova
-python3 -m venv venv && source venv/bin/activate
-pip install -e ".[dev]"
-
-# 2. Configure your node (or use env vars directly)
-export OSNOVA_NAME="alice"
-export OSNOVA_PORT="8000"
-export OSNOVA_DATA_DIR="/tmp/osnova-alice"
-
-# 3. Run
-python -m osnova.app
-```
-
-Node is up at `http://127.0.0.1:8000`. Interactive API docs at `/docs`.
-
----
-
-## Multi-Node Demo
-
-Launch a 3-node cluster (alice, bob, carol) with automatic peer registration:
+### Installation
 
 ```bash
-bash scripts/launch_cluster.sh
+git clone https://github.com/maciejjankowski/osnova.git
+cd osnova/php
+php -S localhost:8000
 ```
 
-The script:
-- Starts alice (8000), bob (8001), carol (8002) in the background
-- Waits for all three to be healthy
-- Auto-registers each node as an inner-ring peer of the others
-- Prints URLs and watches logs
-- Kills all nodes on Ctrl+C
+Visit `http://localhost:8000` - that's it!
 
-Manual peer registration (if running nodes separately):
+**Requirements:** PHP 8.1+, SQLite3, 512MB RAM
 
-```bash
-# On alice (8000): add bob as an inner ring peer
-curl -s -X POST http://127.0.0.1:8000/api/rings/peers \
-  -H "Content-Type: application/json" \
-  -d '{
-    "public_key": "<bob-public-key>",
-    "display_name": "bob",
-    "ring_level": "inner",
-    "endpoint": "http://127.0.0.1:8001"
-  }'
+### First Run
 
-# Trigger a manual gossip pull
-curl -s -X POST http://127.0.0.1:8000/api/sync/pull
-```
+1. Visit `/welcome` for onboarding
+2. Create your identity (client-side keypair)
+3. Optional: Enter invite code to join a ring
+4. Start exploring!
 
 ---
 
 ## Architecture
 
-Each node is a self-contained FastAPI process with:
+### Layer 1: Social Network (Surface)
+Standard social media features:
+- Post feed with ring visibility
+- Friend connections
+- Direct messages
+- Profile customization
 
-- **Identity** - Ed25519 keypair (PyNaCl). Generated once, persisted to `data_dir/identity.key`.
-- **Content log** - append-only SQLite. All entries are signed by the author's key.
-- **Trust rings** - four Dunbar-capped levels: core (~5), inner (~15), middle (~50), outer (~95). You control who's in each ring.
-- **Gossip** - pull-based HTTP sync. Every N seconds the node pulls new entries from its core + inner peers.
-- **Signals** - canary (node compromised) and eject (voluntary disappearance with content handoff).
+### Layer 2: Gig Marketplace
+TaskRabbit/Fiverr hybrid:
+- Post gigs with ring-scoped visibility
+- Browse and complete tasks
+- 5% platform fee split across federated servers
+- **Hidden:** Gigs double as steganographic containers
 
-See `CLAUDE.md` for design decisions. Full spec: `~/code/the-template/deliverables/areas/research/protocols/2026-04-05_decentralized-truth-network-architecture.md`.
+### Layer 3: Steganographic Signals
+Every innocent feature has a covert purpose:
+- **Keystroke telemetry** ("improving autocorrect") → meta-messages
+- **Profile photo filters** → status signals
+- **Spam folder** → secure channel
+- **Gig postings** → fragment storage
+- **App update prompts** → capability injection
 
-### Ring Levels
+### Layer 4: Capability Injection
+Features unlock based on context:
+- **Phantom users** in your ring → unlock advanced features
+- **Social handshake** → verbal invite codes
+- **Progressive disclosure** → natural feature discovery
+- **Decoy rings** → redirect infiltrators
 
-| Level  | Cap | Sync behavior |
-|--------|-----|---------------|
-| core   | 5   | Full real-time sync |
-| inner  | 15  | Full replication |
-| middle | 50  | SEEDs + PARAGRAPHs only |
-| outer  | 95  | On-demand only |
+### Layer 5: Whistleblower Canary
+Military-grade survivability:
+- **Heartbeat monitoring** (12h-72h intervals)
+- **Message fragmentation** (Reed-Solomon distribution)
+- **Cascade release** across rings on disappearance
+- **Compromised signal** for duress scenarios
+- **60% reconstruction threshold** (works even if 40% of nodes seized)
 
 ---
 
-## Tech Stack
+## API Reference
 
-| Layer | Choice |
-|-------|--------|
-| API server | FastAPI |
-| Storage | SQLite (aiosqlite) |
-| Identity | PyNaCl (Ed25519) |
-| HTTP client | httpx (async) |
-| Frontend | HTMX + Jinja2 |
-| Config | Pydantic / env vars |
-| Tests | pytest + pytest-asyncio |
-| Python | 3.11+ |
+### Core Endpoints
 
----
-
-## Project Structure
-
+**Posts**
 ```
-osnova/
-  osnova/               # Python package
-    app.py              # FastAPI factory + CLI entry point
-    config.py           # NodeConfig loader (file or env vars)
-    schemas.py          # Pydantic models (ContentEntry, Peer, RingLevel, ...)
-    crypto/             # Ed25519 identity, signing, verification
-    storage/            # SQLite append-only content log
-    rings/              # Trust ring management (Dunbar caps)
-    gossip/             # Pull-based peer sync
-    integrity/          # PARDES metadata + riddle encoding
-    eject/              # Node eject + canary signal protocol
-    api/
-      routes.py         # All FastAPI endpoints
-  static/               # CSS, HTMX JS
-  templates/            # Jinja2 HTML templates
-  tests/                # pytest (unit + integration)
-  scripts/
-    launch_cluster.sh   # 3-node local test cluster
-  docs/                 # Design notes
-  pyproject.toml
-  CLAUDE.md             # Architecture decisions and rules
-  BACKLOG.md            # Agent roster and phase tracker
+POST   /api/posts        - Create post
+GET    /api/posts        - Get feed
 ```
 
----
+**Rings**
+```
+POST   /api/rings/add    - Add peer to ring
+GET    /api/rings        - List ring members
+```
 
-## API Endpoints
+**Gigs**
+```
+POST   /api/gigs/post    - Post a gig
+GET    /api/gigs/list    - Browse gigs
+POST   /api/gigs/complete - Mark gig complete
+```
 
-### Identity
+**Messages**
+```
+POST   /api/messages/send  - Send message
+GET    /api/messages/list  - Get inbox
+GET    /api/messages/spam  - Get spam folder (capability-gated)
+```
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/identity` | This node's public key and display name |
+**Capabilities**
+```
+GET    /api/capabilities/check  - Check unlocked features
+POST   /api/capabilities/unlock - Unlock capability
+```
 
-### Content
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/posts` | Create a signed post |
-| GET | `/api/posts` | Feed (query: `limit`, `offset`, `author_key`) |
-| GET | `/api/posts/{hash}` | Single post by content hash |
-| POST | `/api/posts/{hash}/comment` | Add a comment to a post |
-| GET | `/api/posts/{hash}/comments` | All comments on a post |
-| POST | `/api/posts/{hash}/reshare` | Reshare a post |
-
-### Rings
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/rings` | Peer count per ring level |
-| GET | `/api/rings/{level}` | All peers in a ring (`core`/`inner`/`middle`/`outer`) |
-| POST | `/api/rings/peers` | Add a peer to a ring |
-| DELETE | `/api/rings/peers/{public_key}` | Remove a peer |
-| PUT | `/api/rings/peers/{public_key}/promote` | Move peer to a new ring level |
-
-### Sync
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/sync` | Handle incoming sync request from another node |
-| POST | `/api/sync/pull` | Manually trigger a gossip round |
-
-### Signals
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/signals/canary` | Broadcast compromised alert to all ring peers |
-| POST | `/api/signals/eject` | Package content and eject from network |
-| POST | `/api/signals/receive` | Receive a canary or eject signal from a peer |
-
-Full interactive docs at `/docs` (Swagger UI) when the node is running.
+**Canary (Capability-Gated)**
+```
+POST   /api/canary/create       - Create dead man's switch
+POST   /api/canary/heartbeat    - Record heartbeat
+GET    /api/canary/status/:id   - Check canary status
+POST   /api/canary/compromised  - Signal compromised
+GET    /api/canary/reconstruct/:id - Reconstruct message
+```
 
 ---
 
-## Running Tests
+## Security Model
 
+### Threat Actors
+
+**1. State-level adversaries**
+- Capabilities: Server seizure, network monitoring, legal pressure
+- Mitigation: Decentralization, cascade release, jurisdiction diversity
+
+**2. Corporate surveillance**
+- Capabilities: Data purchase, infiltration, subpoena
+- Mitigation: No central DB, encryption, no third-party tracking
+
+**3. Social engineering**
+- Capabilities: Fake users, trust exploitation
+- Mitigation: Social handshake, phantom users, decoy rings
+
+### Attack Resistance
+
+**Scenario: Government seizes primary server**
+- ✅ Users migrate to federated servers
+- ✅ Canary messages already distributed
+- ✅ Seizure triggers cascade release
+
+**Scenario: Infiltrator joins network**
+- ✅ Social handshake verification fails
+- ✅ Redirected to decoy ring
+- ✅ Gains no access to real fragments
+
+**Scenario: Suppress entire Ring 0 (10 nodes)**
+- ✅ Ring 1 (100 nodes) holds 40% of fragments
+- ✅ Can still reconstruct message
+- ✅ Attacker must suppress 100+ nodes in 24h
+
+**Scenario: Suppress 1000+ nodes simultaneously**
+- ✅ Exponential cost impossible to achieve
+- ✅ Some nodes always survive
+- ✅ Attempted suppression = Streisand effect
+
+---
+
+## Dual-Use Feature Matrix
+
+| Innocent Feature | Covert Purpose | Trigger |
+|-----------------|----------------|---------|
+| Photo color filter | Signal status/mode | Phantom user in ring |
+| Typos in messages | Meta-message channel | Pre-agreed patterns |
+| Gig posting | Steganographic container | Price = fragment ID |
+| Spam folder | Secure message channel | "Spam trainer" phantom user |
+| Cookie consent | Capability injection | Ring composition |
+| "App update" | Mode switch | Specific user online |
+| Following inactive user | Feature gate unlock | User ID pattern |
+| Emoji reactions | Voting mechanism | Reaction combinations |
+
+---
+
+## Capability Unlocking
+
+### Ring 0 (New user):
+- Basic posting
+- Public gigs only
+- Standard messaging
+
+### Ring 1 (After first connection):
+- Ring-limited posts
+- Private gigs
+- Group messages
+
+### Ring 2 (After phantom user unlock):
+- Spam folder
+- Advanced gig search
+- Telemetry opt-in
+
+### Ring 3 (After social handshake):
+- Full steganographic features
+- Canary composer
+- Fragment viewer
+- Decoy detection
+
+---
+
+## Deployment
+
+### Self-Hosting (Recommended)
+
+**Simple:**
 ```bash
-source venv/bin/activate
-pytest tests/ -v
+cd osnova/php
+php -S localhost:8000
 ```
 
-Run a specific module:
+**Production (Apache):**
+```apache
+<VirtualHost *:80>
+    DocumentRoot /var/www/osnova/php
+    <Directory /var/www/osnova/php>
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
 
+**Canary Monitoring (Cron):**
 ```bash
-pytest tests/test_crypto.py -v     # 19 tests - identity + signing
-pytest tests/test_storage.py -v    # 15 tests - content log
-pytest tests/test_rings.py -v      # 21 tests - trust rings
-pytest tests/test_gossip.py -v     # 16 tests - peer sync
-pytest tests/test_api.py -v        # API endpoints
-pytest tests/test_eject.py -v      # eject + canary protocols
-pytest tests/test_riddle.py -v     # riddle encoder integration
+# Check for missed heartbeats every hour
+0 * * * * /path/to/osnova/php/scripts/canary_monitor.php
 ```
 
-### Node Configuration
+### Federation
 
-All settings via env vars or a JSON config file (`NodeConfig` schema):
+Servers discover each other via:
+- DNS SRV records
+- Peer advertisements
+- Web of trust model
 
-| Env var | Default | Description |
-|---------|---------|-------------|
-| `OSNOVA_NAME` | `anonymous` | Display name shown to peers |
-| `OSNOVA_HOST` | `127.0.0.1` | Listen address |
-| `OSNOVA_PORT` | `8000` | Listen port |
-| `OSNOVA_DATA_DIR` | `./data` | SQLite + keypair storage |
-| `OSNOVA_GOSSIP_INTERVAL` | `30` | Seconds between gossip rounds |
-| `OSNOVA_CONFIG` | - | Path to JSON config file (overrides all above) |
+Each server maintains its own ring topology and fragments.
 
-JSON config example:
+---
 
-```json
-{
-  "display_name": "alice",
-  "host": "127.0.0.1",
-  "port": 8000,
-  "data_dir": "/tmp/osnova-alice",
-  "gossip_interval_seconds": 10
-}
+## Economics
+
+### Revenue Streams
+
+1. **Gig marketplace fee:** 5% platform fee
+   - Split: 60% requester's server, 40% provider's server
+   
+2. **Premium features:** $3-5/month
+   - Advanced analytics
+   - Larger uploads
+   - Custom domains
+
+3. **Managed hosting:** $10/month
+   - For non-technical users
+   
+4. **Enterprise deployments:** $1000-5000
+   - White-label installs
+   - OpSec consulting
+
+### Cost Structure
+
+Per-user costs (at scale):
+- Hosting: $0.10/month
+- Storage: $0.05/month
+- Bandwidth: $0.05/month
+- **Total: ~$0.20/month**
+
+Break-even: ~1000 users with premium or 10 gigs/user/month
+
+---
+
+## Development
+
+### Tech Stack
+
+**Backend:** PHP 8.1+ (portable, widely hosted)  
+**Database:** SQLite → PostgreSQL (as scale requires)  
+**Encryption:** libsodium (built into PHP 7.2+)  
+**Frontend:** Alpine.js + vanilla JS/CSS  
+**Design:** Osnova.css (mobile-first, WCAG 2.1 AA)
+
+### Running Tests
+
+**PHP:**
+```bash
+cd php
+php tests/test_all.php
 ```
 
-Pass it with `--config path/to/config.json` or set `OSNOVA_CONFIG`.
+**Python (integration):**
+```bash
+cd osnova
+pytest -v
+```
+
+### Contributing
+
+1. Check [BACKLOG.md](BACKLOG.md) for current priorities
+2. Read [SPEC.md](SPEC.md) for complete architecture
+3. Test locally before submitting PR
+4. All features must maintain dual-use principle
+
+---
+
+## Roadmap
+
+### ✅ Phase 1: MVP (Complete)
+- Social network core
+- Ring topology
+- Gig marketplace
+- Onboarding flow
+
+### ✅ Phase 2: Steganography (Complete)
+- Keystroke telemetry
+- Capability injection
+- Spam folder
+- Profile signals
+
+### ✅ Phase 3: Canary System (Complete)
+- Dead man's switch
+- Message fragmentation
+- Cascade release
+- Heartbeat monitoring
+
+### 🔄 Phase 4: Polish & Scale (Ongoing)
+- Mobile apps (PWA)
+- Browser extension
+- Performance optimization
+- Penetration testing
+
+### 📋 Phase 5: Long-term Resilience
+- IPFS transport
+- LoRa/Meshtastic support
+- Bluetooth mesh
+- Store-carry-forward
+
+---
+
+## FAQ
+
+**Q: Is this legal?**  
+A: Yes. Osnova is a social network. Whistleblowing is protected in many jurisdictions. We don't host illegal content.
+
+**Q: Can governments shut this down?**  
+A: Individual servers, yes. The network, no. It's decentralized and federated. Shutting it down requires suppressing thousands of nodes simultaneously - economically impossible.
+
+**Q: How is this different from Signal/Tor?**  
+A: Signal requires both parties online. Tor has exit node vulnerabilities. Osnova uses dead man's switch with distributed fragment storage - works even if you're captured.
+
+**Q: What if I just want to use it as a social network?**  
+A: Perfect! 90% of users will never see the whistleblower features. You get a privacy-respecting social network with a gig marketplace.
+
+**Q: Why PHP?**  
+A: Portability. PHP runs on cheap shared hosting everywhere. Lowers barrier to entry for federation. No Node.js, Docker, or complex setup.
+
+**Q: Is it production ready?**  
+A: Core features are complete and tested. Polish and scale optimization ongoing. Use at your own risk for sensitive operations.
+
+---
+
+## License
+
+MIT License - See [LICENSE](LICENSE) for details
+
+---
+
+## Credits
+
+- **Architecture:** Based on Scuttlebutt, Secure Scuttlebutt, and modern whistleblower platforms
+- **Design:** Inspired by Threads, Signal, and privacy-first applications
+- **Cryptography:** libsodium (NaCl) for all crypto operations
+
+---
+
+## Support
+
+- **GitHub:** [maciejjankowski/osnova](https://github.com/maciejjankowski/osnova)
+- **Issues:** Use GitHub Issues for bugs and feature requests
+- **Security:** Email security issues privately (see SECURITY.md)
+
+---
+
+**"The truth wants to be free. Osnova makes it unstoppable."**
