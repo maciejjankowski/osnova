@@ -34,6 +34,7 @@ require_once __DIR__ . '/lib/rings.php';
 require_once __DIR__ . '/lib/gossip.php';
 require_once __DIR__ . '/lib/eject.php';
 require_once __DIR__ . '/lib/discovery.php';
+require_once __DIR__ . '/lib/gig_store.php';
 
 // Ensure keypair exists
 if (!file_exists(IDENTITY_KEY_FILE)) {

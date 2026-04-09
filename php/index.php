@@ -21,6 +21,7 @@ require_once __DIR__ . '/api/sync.php';
 require_once __DIR__ . '/api/identity.php';
 require_once __DIR__ . '/api/signals.php';
 require_once __DIR__ . '/api/discovery.php';
+require_once __DIR__ . '/api/gigs.php';
 
 // ---------------------------------------------------------------------------
 // Shared helper functions
@@ -86,6 +87,7 @@ if (count($segments) >= 2 && $segments[0] === 'api') {
         $api === 'identity'  => api_identity_handler($method, $kp),
         $api === 'signals'   => api_signals_handler($method, $segments, $kp, $log, $rings, $sigStore),
         $api === 'discovery' => api_discovery_handler($method, $segments, $kp, $rings, $triadStore),
+        $api === 'gigs'      => api_gigs_handler($method, $segments, $kp, $log, $rings),
         default              => json_error(404, "Unknown API endpoint: /api/{$api}"),
     };
     exit;
@@ -134,9 +136,11 @@ function render_page(string $template, array $vars, string $active, string $titl
 
 $page = $segments[0] ?? 'feed';
 
-// Redirect / to /feed
+// Redirect / to /welcome for first-time users, /feed for returning
 if ($path === '/' || $path === '') {
-    header('Location: /feed');
+    // Check if user has identity in localStorage (checked client-side)
+    // For now, always redirect to welcome for proper onboarding
+    header('Location: /welcome');
     exit;
 }
 
@@ -239,6 +243,27 @@ match ($page) {
 
     'eject' => (function() {
         render_page('eject', [], 'eject', 'Eject');
+    })(),
+    
+    'welcome' => (function() {
+        // Serve onboarding directly
+        readfile(__DIR__ . '/templates/onboarding/welcome.php');
+    })(),
+    
+    'gigs' => (function() use ($rings, $segments) {
+        global $gigStore;
+        if (!isset($gigStore)) {
+            $gigStore = new GigStore(DATA_DIR . '/gigs.db');
+        }
+        
+        // Check for /gigs/post route
+        if (isset($segments[1]) && $segments[1] === 'post') {
+            render_page('gigs_post', [], 'gigs', 'Post a Gig');
+            return;
+        }
+        
+        $gigs = $gigStore->listGigs(20, 0);
+        render_page('gigs', ['gigs' => $gigs], 'gigs', 'Gigs');
     })(),
 
     default => (function() use ($path) {
